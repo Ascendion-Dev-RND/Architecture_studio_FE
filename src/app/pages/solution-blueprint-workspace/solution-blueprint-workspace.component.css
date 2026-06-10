@@ -1,0 +1,29 @@
+.bg-card-workspace {
+  box-shadow:
+    var(--Elevation-01X)
+    var(--Elevation-01Y)
+    var(--Elevation-01Blur)
+    var(--Elevation-01Spread)
+    var(--BrandNeutraln-100);
+
+  border: 1.5px solid rgba(253, 253, 253, 1);
+
+  background: rgba(255, 255, 255, 0.6);
+
+  position: relative;
+}
+
+.canvas-bg {
+  position: relative;
+
+  background:
+    radial-gradient(circle, rgba(100, 116, 139, 0.25) 1px, transparent 1px),
+    rgba(30, 30, 30, 0.1);
+
+  background-size: 18px 18px;
+
+  backdrop-filter: blur(100px);
+  -webkit-backdrop-filter: blur(100px);
+
+  border: 0.5px solid rgba(209, 211, 216, 1);
+}

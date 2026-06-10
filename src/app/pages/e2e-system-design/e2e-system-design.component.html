@@ -1,0 +1,192 @@
+<app-file-attachment
+  #fileAttachment
+  class="hidden"
+  [multiple]="true"
+  [showDropZone]="false"
+  [context]="'all'"
+  [maxFiles]="5"
+  (filesChanged)="onFilesChanged($event)"
+  (contextBuilt)="onContextBuilt($event)"
+></app-file-attachment>
+
+<div class="min-h-screen gradient-hero">
+  <app-breadcrumb [items]="breadcrumbItems" />
+
+  <main class="pt-32 pb-20 px-6">
+    <div class="container mx-auto text-center">
+
+      <!-- Title -->
+      <h1
+        class="mb-4"
+        style="
+          background: linear-gradient(150deg, #0044a3 45.68%, #03bdd4 60.03%);
+          background-clip: text;
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          text-align: center;
+          font-family: 'Mulish', sans-serif;
+          font-size: 64px;
+          font-style: normal;
+          font-weight: 500;
+          line-height: 75px;
+        "
+      >
+        Solution Blueprint
+      </h1>
+
+      <!-- Subtitle -->
+      <p
+        class="mb-12 max-w-2xl mx-auto"
+        style="
+          color: #64748b;
+          text-align: center;
+          font-family: 'Mulish', sans-serif;
+          font-size: 24px;
+          font-style: normal;
+          font-weight: 400;
+          line-height: 28px;
+        "
+      >
+        Convert requirements into complete solution blueprints
+      </p>
+
+      <!-- INPUT CARD -->
+      <div
+        class="glass-card glass-card-shadow rounded-xl p-6 max-w-4xl mx-auto"
+      >
+        <!-- INPUT AREA -->
+        <div
+          class="mb-6 rounded-md flex flex-col gap-2 min-h-[90px] max-h-[160px] transition"
+        >
+          <!-- ATTACHMENTS -->
+          <div
+            *ngIf="uploadedFiles.length > 0"
+            class="flex gap-2 overflow-visible"
+          >
+            <div
+              *ngFor="let file of uploadedFiles; let i = index"
+              class="relative w-16 h-16 rounded-md border bg-[#F0F1F2] flex items-center justify-center flex-shrink-0"
+              [title]="file.name"
+            >
+              <!-- IMAGE PREVIEW -->
+              <ng-container *ngIf="file.preview; else fileIcon">
+                <img
+                  [src]="file.preview"
+                  class="w-full h-full object-cover rounded-md"
+                />
+              </ng-container>
+
+              <!-- FILE ICON -->
+              <ng-template #fileIcon>
+                <lucide-icon
+                  name="FileText"
+                  class="w-4 h-4 text-gray-500"
+                ></lucide-icon>
+              </ng-template>
+
+              <!-- REMOVE -->
+              <button
+                type="button"
+                (click)="removeFile(i)"
+                class="absolute top-0 right-0 translate-x-1/4 -translate-y-1/4 w-4 h-4 bg-black/70 text-white rounded-full flex items-center justify-center text-[10px] hover:bg-gray-500"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+
+          <!-- TEXTAREA -->
+          <textarea
+            [(ngModel)]="input"
+            (keydown.enter)="handleSend()"
+            placeholder="Describe your system requirements..."
+            rows="1"
+            class="w-full resize-none text-sm bg-transparent outline-none leading-tight overflow-y-auto"
+            style="
+              color: #3b3f46;
+              font-family: 'Inter', sans-serif;
+            "
+          ></textarea>
+        </div>
+
+        <!-- ACTION BAR -->
+        <div class="flex items-center justify-between">
+
+          <!-- LEFT -->
+          <div class="flex items-center gap-3 text-[0.75rem]">
+
+            <!-- ATTACHMENT -->
+            <div class="relative">
+              <button
+                type="button"
+                title="Add files"
+                (click)="toggleAttachmentPanel()"
+                [class.text-primary]="uploadedFiles.length > 0"
+                class="text-muted-foreground hover:text-foreground transition-colors relative"
+              >
+                <img
+                  src="/assets/icons/plus.svg"
+                  alt="attach Icon"
+                  class="w-6 h-6 cursor-pointer ml-auto"
+                />
+              </button>
+
+              <!-- DROPDOWN -->
+              <div
+                *ngIf="showAttachmentPanel"
+                class="absolute top-full mt-2 w-72 bg-card rounded-lg card-shadow border border-border/50 py-2 z-50"
+              >
+                <button
+                  (click)="openFilePicker()"
+                  class="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100"
+                >
+                  <lucide-icon
+                    name="FileUp"
+                    class="w-4 h-4"
+                  ></lucide-icon>
+
+                  Upload files
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- RIGHT -->
+          <div class="flex items-center gap-4">
+
+            <!-- ENHANCE -->
+            <button
+              type="button"
+              (click)="handleEnhance()"
+              title="Enhance prompt"
+              class="text-muted-foreground hover:text-amber-500 transition-colors cursor-pointer"
+            >
+              <img
+                src="/assets/icons/wand.svg"
+                alt="wand Icon"
+                class="w-6 h-6 cursor-pointer ml-auto"
+              />
+            </button>
+
+            <!-- SEND -->
+            <button
+              type="button"
+              title="Generate blueprint"
+              (click)="handleSend()"
+              class="text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+            >
+              <img
+                src="/assets/icons/send-icon.svg"
+                alt="Send Icon"
+                class="w-6 h-6 cursor-pointer ml-auto"
+              />
+            </button>
+
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
