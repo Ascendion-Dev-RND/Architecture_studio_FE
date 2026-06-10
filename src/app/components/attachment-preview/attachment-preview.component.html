@@ -1,0 +1,79 @@
+<div class="attachment-preview group relative inline-flex items-center gap-2 p-2 bg-white border border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
+  <!-- Preview Thumbnail -->
+  <div class="flex-shrink-0 w-16 h-16 {{ getThumbnailClass() }}">
+    <img *ngIf="attachment.type === 'image' && previewUrl"
+         [src]="previewUrl"
+         [alt]="attachment.name"
+         class="w-full h-full object-cover rounded"
+         (error)="previewUrl = null" />
+    
+    <div *ngIf="!previewUrl || attachment.type !== 'image'" class="w-full h-full flex items-center justify-center">
+      <lucide-icon [name]="getIcon()" class="w-6 h-6 text-gray-400" />
+    </div>
+  </div>
+
+  <!-- Attachment Info -->
+  <div class="flex-1 min-w-0">
+    <div class="flex items-start justify-between">
+      <div class="flex-1 min-w-0">
+        <h4 class="text-sm font-medium text-gray-900 truncate">{{ attachment.name }}</h4>
+        <p class="text-xs text-gray-500">
+          {{ formatFileSize(attachment.size) }}
+          <span *ngIf="attachment.mimeType" class="ml-1">• {{ attachment.mimeType }}</span>
+        </p>
+      </div>
+
+      <!-- Status & Actions -->
+      <div class="flex items-center gap-1">
+        <!-- Status Icon -->
+        <lucide-icon *ngIf="getStatusIcon()" 
+                        [name]="getStatusIcon()" 
+                        [class]="'w-4 h-4 ' + getStatusColor()"
+                        [ngClass]="{'animate-spin': attachment.status === 'uploading'}" />
+        
+        <!-- Remove Button -->
+        <button *ngIf="removable && attachment.status !== 'uploading'"
+                type="button"
+                (click)="onRemove()"
+                class="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-gray-100 rounded">
+          <lucide-icon name="x" class="w-4 h-4 text-gray-400 hover:text-gray-600" />
+        </button>
+
+        <!-- Retry Button -->
+        <button *ngIf="attachment.status === 'error'"
+                type="button"
+                (click)="onRetry()"
+                class="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-gray-100 rounded">
+          <lucide-icon name="refresh-cw" class="w-4 h-4 text-gray-400 hover:text-gray-600" />
+        </button>
+      </div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div *ngIf="showProgress && attachment.status === 'uploading'" class="mt-2">
+      <div class="w-full bg-gray-200 rounded-full h-1">
+        <div class="bg-blue-600 h-1 rounded-full transition-all duration-300 ease-out"
+             [style]="{width: '0%'}"></div>
+      </div>
+    </div>
+
+    <!-- Error Message -->
+    <div *ngIf="attachment.status === 'error' && attachment.error" 
+         class="mt-1 text-xs text-red-600">
+      {{ attachment.error }}
+    </div>
+
+    <!-- Metadata -->
+    <div *ngIf="attachment.metadata" class="mt-1 text-xs text-gray-500">
+      <span *ngIf="attachment.metadata.width">
+        {{ attachment.metadata.width }}x{{ attachment.metadata.height }}
+      </span>
+      <span *ngIf="attachment.metadata.pages" class="ml-2">
+        {{ attachment.metadata.pages }} pages
+      </span>
+      <span *ngIf="attachment.metadata.extractedText" class="ml-2">
+        Text extracted
+      </span>
+    </div>
+  </div>
+</div>

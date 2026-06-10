@@ -1,0 +1,204 @@
+<div class="min-h-screen gradient-hero">
+  <!-- Breadcrumb Navigation -->
+  <app-breadcrumb [items]="breadcrumbItems" />
+  
+  <nav class="fixed top-0 left-0 right-0 z-50 gradient-lavender bg-background/80 backdrop-blur-md border-0 border-border/50">
+    <div class="container mx-auto px-6 py-4 flex items-center justify-between">
+      <a routerLink="/" class="flex items-center gap-2">
+        <span class="text-lg font-medium tracking-wide bg-gradient-to-r from-coral to-coral-light bg-clip-text text-transparent">
+          Architecture-Studio
+        </span>
+      </a>
+    </div>
+  </nav>
+
+  <main class="pt-32 pb-20 px-6">
+    <div class="container mx-auto max-w-5xl">
+      <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
+        <span class="text-foreground">Blueprint </span>
+        <span class="text-gradient-primary">Clarifications</span>
+      </h1>
+      
+      <p class="text-muted-foreground text-lg mb-12">
+        Help us understand your technical preferences and constraints to generate a more accurate solution blueprint.
+      </p>
+
+      <div class="bg-card rounded-2xl p-6 card-shadow space-y-8">
+        
+        <!-- Cloud Provider -->
+        <div>
+          <h2 class="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
+            <lucide-icon name="Cloud" class="w-5 h-5 text-primary"></lucide-icon>
+            Cloud Hyperscaler
+          </h2>
+          <select 
+            [(ngModel)]="cloudProvider"
+            class="w-full px-4 py-3 rounded-lg border border-border/50 bg-secondary/50 text-foreground outline-none focus:ring-2 focus:ring-primary">
+            <option *ngFor="let provider of cloudProviders" [value]="provider.value">
+              {{ provider.label }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Container Orchestration (conditional) -->
+        <div *ngIf="cloudProvider !== 'on-premise'">
+          <h2 class="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
+            <lucide-icon name="Box" class="w-5 h-5 text-primary"></lucide-icon>
+            Container Orchestration / Compute
+          </h2>
+          <select 
+            [(ngModel)]="containerOrchestration"
+            class="w-full px-4 py-3 rounded-lg border border-border/50 bg-secondary/50 text-foreground outline-none focus:ring-2 focus:ring-primary">
+            <option *ngFor="let option of containerOptions" [value]="option.value">
+              {{ option.label }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Tech Stack Section -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Backend Tech Stack -->
+          <div>
+            <h2 class="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
+              <lucide-icon name="Server" class="w-5 h-5 text-primary"></lucide-icon>
+              Backend Framework
+            </h2>
+            <select 
+              [(ngModel)]="backendTechStack"
+              class="w-full px-4 py-3 rounded-lg border border-border/50 bg-secondary/50 text-foreground outline-none focus:ring-2 focus:ring-primary">
+              <option *ngFor="let option of backendOptions" [value]="option.value">
+                {{ option.label }}
+              </option>
+            </select>
+          </div>
+
+          <!-- Frontend Tech Stack -->
+          <div>
+            <h2 class="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
+              <lucide-icon name="Layout" class="w-5 h-5 text-primary"></lucide-icon>
+              Frontend Framework
+            </h2>
+            <select 
+              [(ngModel)]="frontendTechStack"
+              class="w-full px-4 py-3 rounded-lg border border-border/50 bg-secondary/50 text-foreground outline-none focus:ring-2 focus:ring-primary">
+              <option *ngFor="let option of frontendOptions" [value]="option.value">
+                {{ option.label }}
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Data Layer Section -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Primary Database -->
+          <div>
+            <h2 class="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
+              <lucide-icon name="Database" class="w-5 h-5 text-primary"></lucide-icon>
+              Primary Database
+            </h2>
+            <select 
+              [(ngModel)]="primaryDatabase"
+              class="w-full px-4 py-3 rounded-lg border border-border/50 bg-secondary/50 text-foreground outline-none focus:ring-2 focus:ring-primary">
+              <option *ngFor="let option of databaseOptions" [value]="option.value">
+                {{ option.label }}
+              </option>
+            </select>
+          </div>
+
+          <!-- Caching Layer -->
+          <div>
+            <h2 class="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
+              <lucide-icon name="Zap" class="w-5 h-5 text-primary"></lucide-icon>
+              Caching Layer
+            </h2>
+            <select 
+              [(ngModel)]="cachingLayer"
+              class="w-full px-4 py-3 rounded-lg border border-border/50 bg-secondary/50 text-foreground outline-none focus:ring-2 focus:ring-primary">
+              <option *ngFor="let option of cachingOptions" [value]="option.value">
+                {{ option.label }}
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Message Queue -->
+        <div>
+          <h2 class="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
+            <lucide-icon name="MessageSquare" class="w-5 h-5 text-primary"></lucide-icon>
+            Message Queue / Event Streaming
+          </h2>
+          <select 
+            [(ngModel)]="messageQueue"
+            class="w-full px-4 py-3 rounded-lg border border-border/50 bg-secondary/50 text-foreground outline-none focus:ring-2 focus:ring-primary">
+            <option *ngFor="let option of messageQueueOptions" [value]="option.value">
+              {{ option.label }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Observability Section -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- APM Tool -->
+          <div>
+            <h2 class="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
+              <lucide-icon name="Activity" class="w-5 h-5 text-primary"></lucide-icon>
+              APM & Observability
+            </h2>
+            <select 
+              [(ngModel)]="apmTool"
+              class="w-full px-4 py-3 rounded-lg border border-border/50 bg-secondary/50 text-foreground outline-none focus:ring-2 focus:ring-primary">
+              <option *ngFor="let option of apmOptions" [value]="option.value">
+                {{ option.label }}
+              </option>
+            </select>
+          </div>
+
+          <!-- CI/CD Tool -->
+          <div>
+            <h2 class="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
+              <lucide-icon name="GitBranch" class="w-5 h-5 text-primary"></lucide-icon>
+              CI/CD Pipeline
+            </h2>
+            <select 
+              [(ngModel)]="cicdTool"
+              class="w-full px-4 py-3 rounded-lg border border-border/50 bg-secondary/50 text-foreground outline-none focus:ring-2 focus:ring-primary">
+              <option *ngFor="let option of cicdOptions" [value]="option.value">
+                {{ option.label }}
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Authentication -->
+        <div>
+          <h2 class="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
+            <lucide-icon name="Shield" class="w-5 h-5 text-primary"></lucide-icon>
+            Authentication Method
+          </h2>
+          <select 
+            [(ngModel)]="authMethod"
+            class="w-full px-4 py-3 rounded-lg border border-border/50 bg-secondary/50 text-foreground outline-none focus:ring-2 focus:ring-primary">
+            <option *ngFor="let option of authOptions" [value]="option.value">
+              {{ option.label }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex items-center justify-between pt-6">
+          <button
+            routerLink="/solution-blueprint"
+            class="px-6 py-3 rounded-lg text-foreground hover:bg-secondary/50 transition-colors">
+            Back
+          </button>
+          <button
+            (click)="generateBlueprint()"
+            class="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors">
+            Generate Blueprint
+            <lucide-icon name="ArrowRight" class="w-5 h-5"></lucide-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>

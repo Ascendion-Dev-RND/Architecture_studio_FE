@@ -1,0 +1,239 @@
+<div class="sandbox">
+  <header class="sandbox-header">
+    <h1>v2 IntentGraph Sandbox</h1>
+    <p class="sub">
+      Direct test of <code>POST /arch/api/v2/diagram/compile-from-prompt</code> —
+      the new agent-driven path. Bypasses workbench intake + RAG.
+    </p>
+  </header>
+
+  <section class="form">
+    <div class="row">
+      <label>
+        View type
+        <select [ngModel]="viewType()" (ngModelChange)="viewType.set($event)">
+          <option value="c4-context">c4-context</option>
+          <option value="c4-container">c4-container</option>
+          <option value="c4-component">c4-component</option>
+          <option value="deployment-infrastructure">deployment-infrastructure</option>
+          <option value="cicd-pipeline">cicd-pipeline</option>
+        </select>
+      </label>
+
+      <label>
+        Provider
+        <select [ngModel]="provider()" (ngModelChange)="provider.set($event)">
+          <option value="GENERIC">GENERIC</option>
+          <option value="AWS">AWS</option>
+          <option value="AZURE">AZURE</option>
+          <option value="GCP">GCP</option>
+          <option value="ON_PREM">ON_PREM</option>
+          <option value="HYBRID">HYBRID</option>
+        </select>
+      </label>
+
+      <label class="checkbox">
+        <input type="checkbox"
+               [ngModel]="multicloud()"
+               (ngModelChange)="multicloud.set($event)"> multicloud
+      </label>
+
+      <label>
+        max retries
+        <input type="number" min="0" max="3" style="width: 64px"
+               [ngModel]="maxRetries()"
+               (ngModelChange)="maxRetries.set(+$event)">
+      </label>
+    </div>
+
+    <div class="row">
+      <label class="grow">
+        workspaceId
+        <input type="text" [ngModel]="workspaceId()" (ngModelChange)="workspaceId.set($event)">
+      </label>
+      <label class="grow">
+        diagramId
+        <input type="text" [ngModel]="diagramId()" (ngModelChange)="diagramId.set($event)">
+      </label>
+      <button class="ghost" (click)="newDiagramId()" type="button">↻ new id</button>
+    </div>
+
+    <label class="full">
+      User intent (the prompt)
+      <textarea rows="4"
+                [ngModel]="userIntent()"
+                (ngModelChange)="userIntent.set($event)"></textarea>
+    </label>
+
+    <label class="full">
+      Clarifications (one per line; injected as binding instructions)
+      <textarea rows="3" placeholder="e.g. must comply with HIPAA&#10;use Aurora not RDS"
+                [ngModel]="clarificationsText()"
+                (ngModelChange)="clarificationsText.set($event)"></textarea>
+    </label>
+
+    <div class="actions">
+      <button class="primary" (click)="submit()" [disabled]="loading()" type="button">
+        {{ loading() ? 'Generating…' : 'Generate diagram' }}
+      </button>
+      <span *ngIf="httpStatus() !== null" class="status" [class]="statusBadgeClass()">
+        HTTP {{ httpStatus() }} · {{ elapsedMs() }}ms
+      </span>
+    </div>
+  </section>
+
+  <!-- ── Success: SVG canvas + structured panels ─────────────────────── -->
+  <ng-container *ngIf="result() && !errorBody()">
+    <section class="canvas-toolbar">
+      <div class="view-toggle">
+        <button type="button"
+                [class.active]="viewMode() === 'split'"
+                (click)="viewMode.set('split')">Split (SVG + V2)</button>
+        <button type="button"
+                [class.active]="viewMode() === 'svg'"
+                (click)="viewMode.set('svg')">SVG (v2 reference)</button>
+        <button type="button"
+                [class.active]="viewMode() === 'v2-mxgraph'"
+                (click)="viewMode.set('v2-mxgraph')">V2 MaxGraph (new)</button>
+        <button type="button"
+                [class.active]="viewMode() === 'mxgraph'"
+                (click)="viewMode.set('mxgraph')">Legacy MaxGraph (compare)</button>
+      </div>
+      <span class="canvas-hint">
+        SVG = v2's reference render · V2 MaxGraph = new purpose-built renderer (Phase 1: render only)
+      </span>
+    </section>
+
+    <section class="canvas-grid"
+             [class.single]="viewMode() === 'svg' || viewMode() === 'v2-mxgraph' || viewMode() === 'mxgraph'">
+      <!-- SVG pane: shown in split + svg modes -->
+      <div class="canvas-pane" *ngIf="viewMode() === 'split' || viewMode() === 'svg'">
+        <div class="canvas-pane-header">
+          <span class="pane-title">SVG (reference)</span>
+          <span class="pane-source">v2 → /v2/render?format=svg</span>
+        </div>
+        <div class="canvas-pane-body">
+          <ng-container *ngIf="traceId() as tid; else trySvg">
+            <app-svg-canvas [traceId]="tid"></app-svg-canvas>
+          </ng-container>
+          <ng-template #trySvg>
+            <ng-container *ngIf="svg() as svgString; else noSvg">
+              <app-svg-canvas [svg]="svgString"></app-svg-canvas>
+            </ng-container>
+          </ng-template>
+          <ng-template #noSvg>
+            <div class="placeholder">
+              <ng-container *ngIf="!svgError(); else svgErr">
+                Fetching SVG…
+              </ng-container>
+              <ng-template #svgErr>
+                <strong>{{ svgError() }}</strong>
+              </ng-template>
+            </div>
+          </ng-template>
+        </div>
+      </div>
+
+      <!-- V2 MaxGraph pane: shown in split + v2-mxgraph modes -->
+      <div class="canvas-pane" *ngIf="viewMode() === 'split' || viewMode() === 'v2-mxgraph'">
+        <div class="canvas-pane-header">
+          <span class="pane-title">V2 MaxGraph (new)</span>
+          <span class="pane-source">v2 LayoutIR → purpose-built renderer</span>
+        </div>
+        <div class="canvas-pane-body">
+          <ng-container *ngIf="layoutIR() as ir; else noV2Ir">
+            <app-v2-maxgraph-canvas [ir]="ir"></app-v2-maxgraph-canvas>
+          </ng-container>
+          <ng-template #noV2Ir>
+            <div class="placeholder">No LayoutIR available — compile a diagram first.</div>
+          </ng-template>
+        </div>
+      </div>
+
+      <!-- Legacy MaxGraph pane: shown only in mxgraph mode (A/B compare) -->
+      <div class="canvas-pane" *ngIf="viewMode() === 'mxgraph'">
+        <div class="canvas-pane-header">
+          <span class="pane-title">Legacy MaxGraph</span>
+          <span class="pane-source">v1 renderer kept for A/B comparison</span>
+        </div>
+        <div class="canvas-pane-body">
+          <ng-container *ngIf="maxGraphData() as mg; else noMx">
+            <app-maxgraph-canvas [diagramData]="mg"></app-maxgraph-canvas>
+          </ng-container>
+          <ng-template #noMx>
+            <div class="placeholder">No LayoutIR available — compile a diagram first.</div>
+          </ng-template>
+        </div>
+      </div>
+    </section>
+
+    <section *ngIf="normalisationWarnings().length > 0" class="warn-panel">
+      <h3>Agent normalisation warnings</h3>
+      <ul>
+        <li *ngFor="let w of normalisationWarnings()">
+          <strong>{{ w['code'] }}</strong> — {{ w['message'] }}
+        </li>
+      </ul>
+    </section>
+
+    <section class="info-grid">
+      <div class="info-tile">
+        <h3>Pattern</h3>
+        <code>{{ result()?.patternId || '—' }}</code>
+        <div class="kv">
+          <span>diagramId</span><code>{{ result()?.diagramId }}</code>
+          <span>version</span><code>{{ result()?.version }}</code>
+          <span>source</span><code>{{ result()?.source }}</code>
+        </div>
+      </div>
+
+      <div class="info-tile" *ngIf="validation() as v">
+        <h3>Validation</h3>
+        <pre>{{ v | json }}</pre>
+      </div>
+
+      <div class="info-tile" *ngIf="quality() as q">
+        <h3>Quality</h3>
+        <pre>{{ q | json }}</pre>
+      </div>
+    </section>
+
+    <details class="debug">
+      <summary>IntentGraph (what the agent produced + normalised)</summary>
+      <pre>{{ intentGraphPretty() }}</pre>
+    </details>
+
+    <details class="debug">
+      <summary>
+        Raw BFF response
+        <button type="button" class="ghost-sm" (click)="showRawJson.set(!showRawJson())">
+          {{ showRawJson() ? 'hide' : 'show' }}
+        </button>
+      </summary>
+      <pre *ngIf="showRawJson()">{{ rawJsonPretty() }}</pre>
+    </details>
+  </ng-container>
+
+  <!-- ── Failure: structured error panel ─────────────────────────────── -->
+  <section *ngIf="errorBody()" class="error-panel">
+    <h3>Request failed (HTTP {{ httpStatus() }})</h3>
+    <p class="hint" *ngIf="httpStatus() === 410">
+      View type is on the dropped list (ADR-013). Pick a supported one above.
+    </p>
+    <p class="hint" *ngIf="httpStatus() === 422">
+      The agent produced a graph but it either failed BFF validation OR
+      diagram-service-v2 rejected it. Inspect <code>agentEnvelope</code>
+      / <code>upstreamBody</code> below for the exact reason.
+    </p>
+    <p class="hint" *ngIf="httpStatus() === 501">
+      Flag <code>architecture-service.agents.intent-extraction.enabled</code>
+      is off. Set <code>ARCH_AGENTS_INTENT_EXTRACTION=true</code> in your
+      compose env and restart the BFF.
+    </p>
+    <p class="hint" *ngIf="httpStatus() === 504">
+      LLM timeout. Bump <code>AGENTS_V2_INTENT_LLM_TIMEOUT_SECONDS</code>
+      or shorten the prompt.
+    </p>
+    <pre>{{ errorPretty() }}</pre>
+  </section>
+</div>

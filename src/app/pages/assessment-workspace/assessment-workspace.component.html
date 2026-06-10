@@ -1,0 +1,168 @@
+<div class="min-h-screen gradient-hero">
+  <!-- Breadcrumb Navigation -->
+  <app-breadcrumb [items]="breadcrumbItems" />
+  
+  <!-- Navigation -->
+  <nav class="fixed top-0 left-0 right-0 z-50 gradient-lavender bg-background/80 backdrop-blur-md border-0 border-border/50">
+    <div class="container mx-auto px-6 py-4 flex items-center justify-between">
+      <a routerLink="/" class="flex items-center gap-2">
+        <span class="text-lg font-medium tracking-wide bg-gradient-to-r from-coral to-coral-light bg-clip-text text-transparent">
+          Architecture-Studio
+        </span>
+      </a>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="pt-20 h-screen flex flex-col">
+    <div class="container mx-auto max-w-8xl flex-1 flex flex-col px-4 overflow-hidden">
+      <div class="flex-1 flex gap-4 overflow-hidden">
+        <!-- Left: Chat Panel (Collapsible) -->
+        <div 
+          class="flex flex-col bg-card rounded-2xl card-shadow overflow-hidden transition-all duration-300"
+          [class.w-96]="!isChatCollapsed"
+          [class.w-16]="isChatCollapsed">
+          
+          <!-- Chat Header -->
+          <div class="border-b border-border/50 flex-shrink-0">
+            <div class="flex items-center justify-between p-4" [class.hidden]="isChatCollapsed">
+              <div class="flex items-center gap-2">
+                <lucide-icon name="MessageSquare" class="w-5 h-5 text-primary"></lucide-icon>
+                <h2 class="font-semibold text-foreground">Assessment Assistant</h2>
+              </div>
+              <button
+                type="button"
+                (click)="toggleChat()"
+                class="p-2 text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-lg transition-colors"
+                title="Collapse Panel">
+                <lucide-icon name="ChevronLeft" class="w-5 h-5"></lucide-icon>
+              </button>
+            </div>
+            
+            <!-- Collapsed state button -->
+            <div class="flex flex-col items-center py-4" [class.hidden]="!isChatCollapsed">
+              <button
+                type="button"
+                (click)="toggleChat()"
+                class="p-2 text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-lg transition-colors"
+                title="Expand Chat">
+                <lucide-icon name="ChevronRight" class="w-5 h-5"></lucide-icon>
+              </button>
+            </div>
+          </div>
+
+          <!-- Chat Content (when expanded) -->
+          <div *ngIf="!isChatCollapsed" class="flex-1 flex flex-col overflow-hidden">
+            <!-- Messages -->
+            <div class="flex-1 overflow-y-auto p-4 space-y-4">
+              <div *ngFor="let msg of chatMessages" 
+                [ngClass]="{
+                  'flex justify-end': msg.role === 'user',
+                  'flex justify-start': msg.role === 'assistant'
+                }">
+                <div
+                  [ngClass]="{
+                    'bg-primary text-white': msg.role === 'user',
+                    'bg-secondary text-foreground': msg.role === 'assistant'
+                  }"
+                  class="max-w-[85%] px-4 py-2 rounded-2xl text-sm">
+                  {{ msg.content }}
+                </div>
+              </div>
+            </div>
+
+            <!-- Input Area -->
+            <div class="border-t border-border p-4 flex-shrink-0">
+              <div class="flex gap-2">
+                <input
+                  [(ngModel)]="userInput"
+                  (keyup.enter)="sendMessage()"
+                  type="text"
+                  placeholder="Ask about specific assessment areas..."
+                  class="flex-1 px-4 py-2 bg-background border border-border rounded-lg text-foreground text-sm focus:outline-none focus:border-primary transition-colors">
+                <button
+                  (click)="sendMessage()"
+                  [disabled]="!userInput.trim()"
+                  class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                  <lucide-icon name="Send" class="w-4 h-4"></lucide-icon>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Assessment Preview -->
+        <div class="flex-1 flex flex-col bg-card rounded-2xl card-shadow overflow-hidden">
+          <!-- Preview Header -->
+          <div class="border-b border-border p-4 flex items-center justify-between flex-shrink-0">
+            <div class="flex items-center gap-2">
+              <lucide-icon name="ClipboardCheck" class="w-5 h-5 text-primary"></lucide-icon>
+              <h2 class="font-semibold text-foreground">Architecture Assessment</h2>
+            </div>
+            <button
+              (click)="viewReport()"
+              class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors text-sm">
+              View Full Report
+            </button>
+          </div>
+
+          <!-- Preview Content -->
+          <div class="flex-1 overflow-y-auto p-6">
+            <div class="prose prose-sm max-w-none">
+              <h2>Assessment Overview</h2>
+              <p class="text-muted-foreground">
+                Comprehensive architecture evaluation in progress. The assessment covers:
+              </p>
+              
+              <div class="grid md:grid-cols-2 gap-4 my-6">
+                <div class="bg-secondary/30 rounded-xl p-4">
+                  <h3 class="text-base font-semibold mb-2">Risk Analysis</h3>
+                  <ul class="text-sm text-muted-foreground space-y-1">
+                    <li>• Technical Debt Assessment</li>
+                    <li>• Single Points of Failure</li>
+                    <li>• Security Vulnerabilities</li>
+                    <li>• Scalability Risks</li>
+                  </ul>
+                </div>
+                
+                <div class="bg-secondary/30 rounded-xl p-4">
+                  <h3 class="text-base font-semibold mb-2">NFR Evaluation</h3>
+                  <ul class="text-sm text-muted-foreground space-y-1">
+                    <li>• Performance Metrics</li>
+                    <li>• Availability & Reliability</li>
+                    <li>• Maintainability Score</li>
+                    <li>• Testability Analysis</li>
+                  </ul>
+                </div>
+                
+                <div class="bg-secondary/30 rounded-xl p-4">
+                  <h3 class="text-base font-semibold mb-2">TOGAF Alignment</h3>
+                  <ul class="text-sm text-muted-foreground space-y-1">
+                    <li>• ADM Phase Compliance</li>
+                    <li>• Viewpoint Coverage</li>
+                    <li>• Governance Adherence</li>
+                    <li>• Standards Alignment</li>
+                  </ul>
+                </div>
+                
+                <div class="bg-secondary/30 rounded-xl p-4">
+                  <h3 class="text-base font-semibold mb-2">Best Practices</h3>
+                  <ul class="text-sm text-muted-foreground space-y-1">
+                    <li>• Design Patterns Used</li>
+                    <li>• Cloud Best Practices</li>
+                    <li>• Security Standards</li>
+                    <li>• DevOps Maturity</li>
+                  </ul>
+                </div>
+              </div>
+
+              <p class="text-sm text-muted-foreground mt-6">
+                Use the chat on the left to request specific assessment focus areas or clarifications.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>

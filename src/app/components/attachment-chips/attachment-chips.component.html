@@ -1,0 +1,83 @@
+<div class="attachment-chips" [class.compact]="compact">
+  <!-- Summary Badge -->
+  <div *ngIf="attachments.length > 0" class="attachment-summary">
+    <span class="badge">
+      <lucide-icon name="paperclip" class="w-3 h-3" />
+      {{ getAttachmentCount() }} file(s)
+      <span *ngIf="!compact"> • {{ getTotalSize() }}</span>
+    </span>
+    
+    <!-- Status Indicators -->
+    <div *ngIf="showStatus" class="status-indicators">
+      <span *ngIf="hasUploadingAttachments()" class="status-indicator uploading">
+        <lucide-icon name="loader-2" class="w-3 h-3 animate-spin" />
+        Uploading
+      </span>
+      <span *ngIf="hasErrorAttachments()" class="status-indicator error">
+        <lucide-icon name="alert-circle" class="w-3 h-3" />
+        Error
+      </span>
+    </div>
+  </div>
+
+  <!-- Attachment Chips -->
+  <div class="chips-container">
+    <div *ngFor="let attachment of getVisibleAttachments(); trackBy: trackByAttachmentId"
+         class="attachment-chip"
+         [class]="{
+           'uploading': attachment.status === 'uploading',
+           'processing': attachment.status === 'processing',
+           'completed': attachment.status === 'completed',
+           'error': attachment.status === 'error'
+         }">
+      
+      <!-- Icon -->
+      <div class="chip-icon">
+        <lucide-icon [name]="getIconForType(attachment.type)" 
+                        class="w-4 h-4" />
+      </div>
+
+      <!-- Name -->
+      <div class="chip-content">
+        <span class="chip-name">{{ attachment.name }}</span>
+        <span class="chip-size">{{ formatFileSize(attachment.size) }}</span>
+      </div>
+
+      <!-- Status Icon -->
+      <div *ngIf="showStatus" class="chip-status">
+        <lucide-icon [name]="getStatusIcon(attachment.status)" 
+                        [class]="'w-3 h-3 ' + getStatusColor(attachment.status)"
+                        [ngClass]="{'animate-spin': attachment.status === 'uploading' || attachment.status === 'processing'}" />
+      </div>
+
+      <!-- Remove Button -->
+      <button *ngIf="attachment.status !== 'uploading'"
+              type="button"
+              (click)="onRemove(attachment.id)"
+              class="chip-remove">
+        <lucide-icon name="x" class="w-3 h-3" />
+      </button>
+
+      <!-- Retry Button -->
+      <button *ngIf="attachment.status === 'error'"
+              type="button"
+              (click)="onRetry(attachment.id)"
+              class="chip-retry">
+        <lucide-icon name="refresh-cw" class="w-3 h-3" />
+      </button>
+    </div>
+
+    <!-- Expand Button (for compact mode) -->
+    <button *ngIf="compact && attachments.length > 3"
+            type="button"
+            class="expand-button">
+      <lucide-icon name="more-horizontal" class="w-4 h-4" />
+    </button>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="attachments.length === 0" class="empty-state">
+    <lucide-icon name="paperclip" class="w-8 h-8 text-gray-400 mb-2" />
+    <p class="text-sm text-gray-500">No attachments</p>
+  </div>
+</div>

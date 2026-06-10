@@ -1,0 +1,889 @@
+<div class="min-h-screen bg-gradient-to-br from-secondary/30 via-background to-secondary/20">
+  <!-- Breadcrumb Navigation -->
+  <app-breadcrumb [items]="breadcrumbItems" />
+  
+  <!-- Header with Actions -->
+  <nav class="sticky top-0 z-50 gradient-lavender bg-background/80 backdrop-blur-md border-0 border-border/50 px-6 py-4">
+    <div class="container mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <a routerLink="/assessment-options" class="text-muted-foreground hover:text-foreground transition-colors">
+          <lucide-icon name="ArrowLeft" class="w-5 h-5"></lucide-icon>
+        </a>
+        <span class="text-lg font-light tracking-wide bg-gradient-to-r from-coral to-coral-light bg-clip-text text-transparent">
+          Architecture-Studio
+        </span>
+      </div>
+      <div class="flex items-center gap-2">
+        <button class="flex items-center gap-2 px-4 py-2 rounded-lg border border-border/50 text-foreground hover:bg-secondary/50 transition-colors text-sm">
+          <lucide-icon name="Share2" class="w-4 h-4"></lucide-icon>
+          Share
+        </button>
+        <button class="flex items-center gap-2 px-4 py-2 rounded-lg border border-border/50 text-foreground hover:bg-secondary/50 transition-colors text-sm">
+          <lucide-icon name="Download" class="w-4 h-4"></lucide-icon>
+          Export
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="container mx-auto px-6 py-8 max-w-5xl">
+    <!-- Report Header -->
+    <div class="text-center mb-12">
+      <h1 class="text-3xl md:text-4xl font-bold mb-4">
+        <span class="text-gradient-primary">Architecture Assessment</span>
+        <span class="text-foreground"> Report</span>
+      </h1>
+      <div class="flex flex-wrap justify-center gap-4 text-sm text-muted-foreground">
+        <span><strong>System:</strong> Digital Commerce Ordering Platform</span>
+        <span>•</span>
+        <span><strong>Prepared For:</strong> Architecture Studio</span>
+        <span>•</span>
+        <span><strong>Date:</strong> 06 December 2025</span>
+      </div>
+      <p class="text-muted-foreground mt-2">
+        <strong>Assessment Type:</strong> Full Architecture + TOGAF + Patterns + NFR + DDD + Governance Review
+      </p>
+    </div>
+
+    <!-- Sections -->
+    <div class="space-y-8">
+      <!-- 1. Executive Summary -->
+      <section class="bg-card/80 backdrop-blur-sm rounded-xl border border-border/50 p-6 card-shadow">
+        <h2 class="text-xl font-bold mb-4 text-gradient-primary">1. Executive Summary</h2>
+        <div class="space-y-4">
+          <div class="space-y-2">
+            <h3 class="text-lg font-semibold text-foreground">1.1 Purpose</h3>
+            <div class="text-muted-foreground">
+              <p>
+                This assessment evaluates the Digital Commerce Ordering Platform against <strong class="text-foreground">architecture best practices</strong>, <strong class="text-foreground">TOGAF ADM viewpoints</strong>, <strong class="text-foreground">design patterns</strong>, <strong class="text-foreground">non-functional requirements</strong>, and <strong class="text-foreground">governance alignment</strong>, with the goal of identifying risks, gaps, and a TO-BE architecture roadmap.
+              </p>
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <h3 class="text-lg font-semibold text-foreground">1.2 Key Findings</h3>
+            <div class="text-muted-foreground">
+              <ul class="list-disc list-inside space-y-2">
+                <li>Architecture maturity is <strong class="text-foreground">Level 3 – Defined</strong>, but lacks structured governance.</li>
+                <li>Critical <strong class="text-foreground">anti-patterns</strong>: shared databases, synchronous chaining, tight coupling.</li>
+                <li><strong class="text-foreground">NFR maturity uneven</strong>: performance & scalability moderate; resilience & observability weak.</li>
+                <li>Missing <strong class="text-foreground">TOGAF Business/Data/Technology viewpoints</strong>.</li>
+                <li>Data architecture lacks clear ownership and lineage.</li>
+                <li>Strong foundation for cloud-native transformation, but requires modernization.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <h3 class="text-lg font-semibold text-foreground">1.3 Recommended TO-BE Architecture</h3>
+            <div class="text-muted-foreground">
+              <ul class="list-disc list-inside space-y-2">
+                <li>Move toward <strong class="text-foreground">microservices + event-driven architecture</strong>.</li>
+                <li>Establish independent <strong class="text-foreground">bounded contexts</strong> (DDD).</li>
+                <li>Introduce <strong class="text-foreground">Outbox, Saga, CQRS</strong>, and improved API gateway patterns.</li>
+                <li>Strengthen <strong class="text-foreground">observability</strong>, <strong class="text-foreground">cost governance</strong>, <strong class="text-foreground">security posture</strong>.</li>
+                <li>Implement <strong class="text-foreground">Architecture Governance framework</strong>, automated scorecards, and ADRs.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. Assessment Scope -->
+      <section class="bg-card/80 backdrop-blur-sm rounded-xl border border-border/50 p-6 card-shadow">
+        <h2 class="text-xl font-bold mb-4 text-gradient-primary">2. Assessment Scope</h2>
+        <div class="space-y-4">
+          <div class="space-y-2">
+            <h3 class="text-lg font-semibold text-foreground">Included Domains</h3>
+            <div class="text-muted-foreground">
+              <ul class="list-disc list-inside space-y-1">
+                <li>Business & System Context</li>
+                <li>Architecture Principles & TOGAF alignment</li>
+                <li>Application, Data, Integration, Infrastructure</li>
+                <li>Security & Compliance</li>
+                <li>NFR Assessment</li>
+                <li>DDD review</li>
+                <li>Design Patterns and Anti-patterns</li>
+                <li>Architecture Risks</li>
+                <li>TO-BE Architecture + Roadmap</li>
+                <li>Architecture Scorecard</li>
+                <li>ADRs</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <h3 class="text-lg font-semibold text-foreground">Artifacts Reviewed</h3>
+            <div class="text-muted-foreground">
+              <ul class="list-disc list-inside space-y-1">
+                <li>System architecture diagrams</li>
+                <li>API specifications</li>
+                <li>Deployment manifests</li>
+                <li>Sequence diagrams</li>
+                <li>Performance logs</li>
+                <li>Business requirement documents</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. Business & System Context -->
+      <section class="bg-card/80 backdrop-blur-sm rounded-xl border border-border/50 p-6 card-shadow">
+        <h2 class="text-xl font-bold mb-4 text-gradient-primary">3. Business & System Context</h2>
+        <div class="space-y-4">
+          <div class="space-y-2">
+            <h3 class="text-lg font-semibold text-foreground">3.1 Business Capabilities Supported</h3>
+            <div class="text-muted-foreground">
+              <ul class="list-disc list-inside space-y-1">
+                <li>Order Placement & Checkout</li>
+                <li>Cart Management</li>
+                <li>Payment Processing</li>
+                <li>Inventory Management</li>
+                <li>Catalog Browsing</li>
+                <li>Notification Services</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <h3 class="text-lg font-semibold text-foreground">3.2 Stakeholders</h3>
+            <div class="text-muted-foreground">
+              <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                  <thead>
+                    <tr class="border-b border-border">
+                      <th class="text-left py-2 px-3 font-semibold text-foreground">Stakeholder</th>
+                      <th class="text-left py-2 px-3 font-semibold text-foreground">Concerns</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr class="border-b border-border/50">
+                      <td class="py-2 px-3">Product Owner</td>
+                      <td class="py-2 px-3">Feature velocity, cost</td>
+                    </tr>
+                    <tr class="border-b border-border/50">
+                      <td class="py-2 px-3">Architects</td>
+                      <td class="py-2 px-3">Scalability, compliance</td>
+                    </tr>
+                    <tr class="border-b border-border/50">
+                      <td class="py-2 px-3">Ops & SRE</td>
+                      <td class="py-2 px-3">Stability, observability</td>
+                    </tr>
+                    <tr class="border-b border-border/50">
+                      <td class="py-2 px-3">Security</td>
+                      <td class="py-2 px-3">Access control, data protection</td>
+                    </tr>
+                    <tr class="border-b border-border/50">
+                      <td class="py-2 px-3">Engineering</td>
+                      <td class="py-2 px-3">Developer experience</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <h3 class="text-lg font-semibold text-foreground">3.3 System Overview</h3>
+            <div class="text-muted-foreground">
+              <p class="mb-4">A commerce ordering platform composed of:</p>
+              <ul class="list-disc list-inside space-y-1">
+                <li><strong class="text-foreground">8 microservices</strong></li>
+                <li>A <strong class="text-foreground">shared relational database</strong></li>
+                <li><strong class="text-foreground">Kubernetes cluster</strong> deployment</li>
+                <li><strong class="text-foreground">Synchronous REST integration</strong></li>
+                <li><strong class="text-foreground">NGINX API gateway</strong></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. NFR Assessment & Scorecard -->
+      <section class="bg-card/80 backdrop-blur-sm rounded-xl border border-border/50 p-6 card-shadow">
+        <h2 class="text-xl font-bold mb-4 text-gradient-primary">4. NFR Assessment & Scorecard</h2>
+        <div class="space-y-4">
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="border-b border-border">
+                  <th class="text-left py-2 px-3 font-semibold text-foreground">NFR</th>
+                  <th class="text-left py-2 px-3 font-semibold text-foreground">Rating</th>
+                  <th class="text-left py-2 px-3 font-semibold text-foreground">Observations</th>
+                </tr>
+              </thead>
+              <tbody class="text-muted-foreground">
+                <tr class="border-b border-border/50">
+                  <td class="py-2 px-3">Performance</td>
+                  <td class="py-2 px-3">⚠️ Medium</td>
+                  <td class="py-2 px-3">P99 latency spikes at peak load; synchronous chaining.</td>
+                </tr>
+                <tr class="border-b border-border/50">
+                  <td class="py-2 px-3">Scalability</td>
+                  <td class="py-2 px-3">⚠️ Medium</td>
+                  <td class="py-2 px-3">Horizontal scaling available but DB bottleneck.</td>
+                </tr>
+                <tr class="border-b border-border/50">
+                  <td class="py-2 px-3">Availability</td>
+                  <td class="py-2 px-3">❌ Low</td>
+                  <td class="py-2 px-3">No multi-AZ DB; no graceful degradation.</td>
+                </tr>
+                <tr class="border-b border-border/50">
+                  <td class="py-2 px-3">Security</td>
+                  <td class="py-2 px-3">⚠️ Medium</td>
+                  <td class="py-2 px-3">JWT authentication; lack of API rate limits.</td>
+                </tr>
+                <tr class="border-b border-border/50">
+                  <td class="py-2 px-3">Resilience</td>
+                  <td class="py-2 px-3">❌ Low</td>
+                  <td class="py-2 px-3">No retries/backoff; cascading failures possible.</td>
+                </tr>
+                <tr class="border-b border-border/50">
+                  <td class="py-2 px-3">Observability</td>
+                  <td class="py-2 px-3">⚠️ Medium</td>
+                  <td class="py-2 px-3">Logs exist but metrics/traces partial.</td>
+                </tr>
+                <tr class="border-b border-border/50">
+                  <td class="py-2 px-3">Cost Efficiency</td>
+                  <td class="py-2 px-3">⚠️ Medium</td>
+                  <td class="py-2 px-3">Over-provisioned services; no autoscaling.</td>
+                </tr>
+                <tr class="border-b border-border/50">
+                  <td class="py-2 px-3">Compliance</td>
+                  <td class="py-2 px-3">⚠️ Medium</td>
+                  <td class="py-2 px-3">GDPR-ready but no data retention policy.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. TOGAF Alignment Review -->
+      <section class="bg-card/80 backdrop-blur-sm rounded-xl border border-border/50 p-6 card-shadow">
+        <h2 class="text-xl font-bold mb-4 text-gradient-primary">5. TOGAF Alignment Review</h2>
+        <div class="space-y-4">
+          <div class="space-y-2">
+            <h3 class="text-lg font-semibold text-foreground">5.1 ADM Phase Context</h3>
+            <div class="text-muted-foreground">
+              <p>Assessment aligns primarily with <strong class="text-foreground">Phase C (Information Systems Architecture)</strong> and <strong class="text-foreground">Phase D (Technology Architecture)</strong>.</p>
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <h3 class="text-lg font-semibold text-foreground">5.2 TOGAF Viewpoints Coverage</h3>
+            <div class="text-muted-foreground">
+              <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                  <thead>
+                    <tr class="border-b border-border">
+                      <th class="text-left py-2 px-3 font-semibold text-foreground">View</th>
+                      <th class="text-left py-2 px-3 font-semibold text-foreground">Coverage</th>
+                      <th class="text-left py-2 px-3 font-semibold text-foreground">Observations</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr class="border-b border-border/50">
+                      <td class="py-2 px-3">Business Architecture</td>
+                      <td class="py-2 px-3">Partial</td>
+                      <td class="py-2 px-3">No capability map or value stream diagrams.</td>
+                    </tr>
+                    <tr class="border-b border-border/50">
+                      <td class="py-2 px-3">Application Architecture</td>
+                      <td class="py-2 px-3">Good</td>
+                      <td class="py-2 px-3">Microservices identified; lifecycles unclear.</td>
+                    </tr>
+                    <tr class="border-b border-border/50">
+                      <td class="py-2 px-3">Data Architecture</td>
+                      <td class="py-2 px-3">Weak</td>
+                      <td class="py-2 px-3">No canonical model; unclear ownership.</td>
+                    </tr>
+                    <tr class="border-b border-border/50">
+                      <td class="py-2 px-3">Technology Architecture</td>
+                      <td class="py-2 px-3">Medium</td>
+                      <td class="py-2 px-3">Infra defined but lacks DR topology.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <h3 class="text-lg font-semibold text-foreground">5.3 Architecture Principles</h3>
+            <div class="text-muted-foreground">
+              <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                  <thead>
+                    <tr class="border-b border-border">
+                      <th class="text-left py-2 px-3 font-semibold text-foreground">Principle</th>
+                      <th class="text-left py-2 px-3 font-semibold text-foreground">Compliance</th>
+                      <th class="text-left py-2 px-3 font-semibold text-foreground">Notes</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr class="border-b border-border/50">
+                      <td class="py-2 px-3">Single Source of Truth</td>
+                      <td class="py-2 px-3">❌</td>
+                      <td class="py-2 px-3">Customer data replicated across services.</td>
+                    </tr>
+                    <tr class="border-b border-border/50">
+                      <td class="py-2 px-3">Cloud-Native First</td>
+                      <td class="py-2 px-3">⚠️</td>
+                      <td class="py-2 px-3">Containers used but lacking autoscaling & serverless.</td>
+                    </tr>
+                    <tr class="border-b border-border/50">
+                      <td class="py-2 px-3">Loose Coupling</td>
+                      <td class="py-2 px-3">❌</td>
+                      <td class="py-2 px-3">Shared DB and synchronous calls.</td>
+                    </tr>
+                    <tr class="border-b border-border/50">
+                      <td class="py-2 px-3">Security by Design</td>
+                      <td class="py-2 px-3">⚠️</td>
+                      <td class="py-2 px-3">Authentication OK; missing API rate limiting & DLP.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <h3 class="text-lg font-semibold text-foreground">5.4 ABB vs SBB Mapping</h3>
+            <div class="text-muted-foreground">
+              <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                  <thead>
+                    <tr class="border-b border-border">
+                      <th class="text-left py-2 px-3 font-semibold text-foreground">ABB (Logical)</th>
+                      <th class="text-left py-2 px-3 font-semibold text-foreground">SBB (Physical)</th>
+                      <th class="text-left py-2 px-3 font-semibold text-foreground">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr class="border-b border-border/50">
+                      <td class="py-2 px-3">Identity Management</td>
+                      <td class="py-2 px-3">Keycloak</td>
+                      <td class="py-2 px-3">Implemented</td>
+                    </tr>
+                    <tr class="border-b border-border/50">
+                      <td class="py-2 px-3">Messaging Backbone</td>
+                      <td class="py-2 px-3">Kafka</td>
+                      <td class="py-2 px-3">Not implemented</td>
+                    </tr>
+                    <tr class="border-b border-border/50">
+                      <td class="py-2 px-3">Distributed Cache</td>
+                      <td class="py-2 px-3">Redis</td>
+                      <td class="py-2 px-3">Implemented</td>
+                    </tr>
+                    <tr class="border-b border-border/50">
+                      <td class="py-2 px-3">Metrics System</td>
+                      <td class="py-2 px-3">Prometheus + Grafana</td>
+                      <td class="py-2 px-3">Config incomplete</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 6. Design Patterns & Anti-Patterns Review -->
+      <section class="bg-card/80 backdrop-blur-sm rounded-xl border border-border/50 p-6 card-shadow">
+        <h2 class="text-xl font-bold mb-4 text-gradient-primary">6. Design Patterns & Anti-Patterns Review</h2>
+        <div class="space-y-4">
+          <div class="space-y-2">
+            <h3 class="text-lg font-semibold text-foreground">6.1 Patterns Identified</h3>
+            <div class="text-muted-foreground">
+              <ul class="list-disc list-inside space-y-1">
+                <li>API Gateway Pattern (Kong/NGINX)</li>
+                <li>BFF (Backend for Frontend)</li>
+                <li>Circuit Breaker (Resilience4j)</li>
+                <li>CQRS (partial for read endpoints)</li>
+                <li>Cache-aside (Redis)</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <h3 class="text-lg font-semibold text-foreground">6.2 Recommended Patterns</h3>
+            <div class="text-muted-foreground">
+              <ul class="list-disc list-inside space-y-1">
+                <li>Outbox Pattern for reliable event publishing</li>
+                <li>Saga Pattern for distributed workflows</li>
+                <li>Event Carried State Transfer</li>
+                <li>Bulkhead + Retry/Backoff</li>
+                <li>Zero Trust + JWT + mTLS</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <h3 class="text-lg font-semibold text-foreground">6.3 Anti-Patterns</h3>
+            <div class="text-muted-foreground">
+              <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                  <thead>
+                    <tr class="border-b border-border">
+                      <th class="text-left py-2 px-3 font-semibold text-foreground">Anti-pattern</th>
+                      <th class="text-left py-2 px-3 font-semibold text-foreground">Impact</th>
+                      <th class="text-left py-2 px-3 font-semibold text-foreground">Recommendation</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr class="border-b border-border/50">
+                      <td class="py-2 px-3">Shared Database</td>
+                      <td class="py-2 px-3">Tight coupling, migration difficulty</td>
+                      <td class="py-2 px-3">Bounded context separation</td>
+                    </tr>
+                    <tr class="border-b border-border/50">
+                      <td class="py-2 px-3">Chatty synchronous calls</td>
+                      <td class="py-2 px-3">Latency + cascading failures</td>
+                      <td class="py-2 px-3">Aggregation at BFF; async events</td>
+                    </tr>
+                    <tr class="border-b border-border/50">
+                      <td class="py-2 px-3">Hardcoded configs</td>
+                      <td class="py-2 px-3">Deployment issues</td>
+                      <td class="py-2 px-3">Move to Config Store</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 7. Domain-Driven Design Review -->
+      <section class="bg-card/80 backdrop-blur-sm rounded-xl border border-border/50 p-6 card-shadow">
+        <h2 class="text-xl font-bold mb-4 text-gradient-primary">7. Domain-Driven Design Review</h2>
+        <div class="space-y-4">
+          <div class="space-y-2">
+            <h3 class="text-lg font-semibold text-foreground">7.1 Domain Decomposition</h3>
+            <div class="text-muted-foreground">
+              <p class="mb-2">Subdomains:</p>
+              <ul class="list-disc list-inside space-y-1">
+                <li>Ordering</li>
+                <li>Payment</li>
+                <li>Inventory</li>
+                <li>Catalog</li>
+                <li>Customer Profile</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <h3 class="text-lg font-semibold text-foreground">7.2 Bounded Contexts</h3>
+            <div class="text-muted-foreground">
+              <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                  <thead>
+                    <tr class="border-b border-border">
+                      <th class="text-left py-2 px-3 font-semibold text-foreground">Context</th>
+                      <th class="text-left py-2 px-3 font-semibold text-foreground">Observations</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr class="border-b border-border/50">
+                      <td class="py-2 px-3">Ordering</td>
+                      <td class="py-2 px-3">Business logic mixed with Inventory lookups.</td>
+                    </tr>
+                    <tr class="border-b border-border/50">
+                      <td class="py-2 px-3">Payment</td>
+                      <td class="py-2 px-3">Well isolated; incorrect error mapping.</td>
+                    </tr>
+                    <tr class="border-b border-border/50">
+                      <td class="py-2 px-3">Inventory</td>
+                      <td class="py-2 px-3">Overloaded; handles unrelated responsibilities.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <h3 class="text-lg font-semibold text-foreground">7.3 Context Map</h3>
+            <div class="text-muted-foreground">
+              <ul class="list-disc list-inside space-y-1">
+                <li>Ordering → Payment (Upstream Sync Call)</li>
+                <li>Ordering → Inventory (Sync Call)</li>
+                <li>Catalog → Ordering (Sync Call for pricing)</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <h3 class="text-lg font-semibold text-foreground">7.4 Ubiquitous Language Issues</h3>
+            <div class="text-muted-foreground">
+              <ul class="list-disc list-inside space-y-1">
+                <li>"Booking" & "Order" used interchangeably</li>
+                <li>"Stock" vs "Inventory" inconsistency</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 8. Security, Compliance & Governance -->
+      <section class="bg-card/80 backdrop-blur-sm rounded-xl border border-border/50 p-6 card-shadow">
+        <h2 class="text-xl font-bold mb-4 text-gradient-primary">8. Security, Compliance & Governance</h2>
+        <div class="space-y-4">
+          <div class="space-y-2">
+            <h3 class="text-lg font-semibold text-foreground">8.1 Security Assessment</h3>
+            <div class="text-muted-foreground">
+              <ul class="list-disc list-inside space-y-1">
+                <li>JWT-based auth OK, but needs RBAC</li>
+                <li>No API rate limiting</li>
+                <li>Secrets not centrally managed</li>
+                <li>No DLP or PII scanning</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <h3 class="text-lg font-semibold text-foreground">8.2 Compliance</h3>
+            <div class="text-muted-foreground">
+              <ul class="list-disc list-inside space-y-1">
+                <li>GDPR-ready but lacking audit trails</li>
+                <li>No data retention strategy</li>
+                <li>No classification of sensitive datasets</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <h3 class="text-lg font-semibold text-foreground">8.3 Governance Maturity</h3>
+            <div class="text-muted-foreground">
+              <ul class="list-disc list-inside space-y-1">
+                <li>No Architecture Review Board (ARB)</li>
+                <li>No ADR repository</li>
+                <li>No automated architecture scorecard</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 9. Infrastructure & Operations Review -->
+      <section class="bg-card/80 backdrop-blur-sm rounded-xl border border-border/50 p-6 card-shadow">
+        <h2 class="text-xl font-bold mb-4 text-gradient-primary">9. Infrastructure & Operations Review</h2>
+        <div class="space-y-4">
+          <div class="space-y-2">
+            <h3 class="text-lg font-semibold text-foreground">9.1 Cloud Architecture</h3>
+            <div class="text-muted-foreground">
+              <ul class="list-disc list-inside space-y-1">
+                <li>Deployed on Kubernetes (AKS/EKS equivalent)</li>
+                <li>Single-AZ DB</li>
+                <li>No DR region</li>
+                <li>No autoscaling policies</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <h3 class="text-lg font-semibold text-foreground">9.2 Observability</h3>
+            <div class="text-muted-foreground">
+              <ul class="list-disc list-inside space-y-1">
+                <li>Partial logging</li>
+                <li>No trace correlation ID</li>
+                <li>Metrics incomplete</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 10. Data & Integration Architecture -->
+      <section class="bg-card/80 backdrop-blur-sm rounded-xl border border-border/50 p-6 card-shadow">
+        <h2 class="text-xl font-bold mb-4 text-gradient-primary">10. Data & Integration Architecture</h2>
+        <div class="space-y-4">
+          <div class="space-y-2">
+            <h3 class="text-lg font-semibold text-foreground">10.1 Data Flows</h3>
+            <div class="text-muted-foreground">
+              <ul class="list-disc list-inside space-y-1">
+                <li>Pricing → Ordering → Inventory chain</li>
+                <li>No asynchronous eventing</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <h3 class="text-lg font-semibold text-foreground">10.2 Data Issues</h3>
+            <div class="text-muted-foreground">
+              <ul class="list-disc list-inside space-y-1">
+                <li>Data duplication</li>
+                <li>No canonical model</li>
+                <li>No lineage visibility</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <h3 class="text-lg font-semibold text-foreground">10.3 Integration Issues</h3>
+            <div class="text-muted-foreground">
+              <ul class="list-disc list-inside space-y-1">
+                <li>Tight synchronous chaining</li>
+                <li>No message broker</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 11. Detailed Gap Analysis -->
+      <section class="bg-card/80 backdrop-blur-sm rounded-xl border border-border/50 p-6 card-shadow">
+        <h2 class="text-xl font-bold mb-4 text-gradient-primary">11. Detailed Gap Analysis</h2>
+        <div class="space-y-4">
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="border-b border-border">
+                  <th class="text-left py-2 px-3 font-semibold text-foreground">Gap</th>
+                  <th class="text-left py-2 px-3 font-semibold text-foreground">Description</th>
+                  <th class="text-left py-2 px-3 font-semibold text-foreground">Impact</th>
+                  <th class="text-left py-2 px-3 font-semibold text-foreground">Priority</th>
+                  <th class="text-left py-2 px-3 font-semibold text-foreground">Recommendation</th>
+                </tr>
+              </thead>
+              <tbody class="text-muted-foreground">
+                <tr class="border-b border-border/50">
+                  <td class="py-2 px-3">G-01</td>
+                  <td class="py-2 px-3">Shared DB</td>
+                  <td class="py-2 px-3">Migration difficulty, downtime risk</td>
+                  <td class="py-2 px-3">High</td>
+                  <td class="py-2 px-3">Introduce separate schemas, domain events</td>
+                </tr>
+                <tr class="border-b border-border/50">
+                  <td class="py-2 px-3">G-02</td>
+                  <td class="py-2 px-3">Sync chaining</td>
+                  <td class="py-2 px-3">Cascading failures</td>
+                  <td class="py-2 px-3">High</td>
+                  <td class="py-2 px-3">Introduce async events + caching</td>
+                </tr>
+                <tr class="border-b border-border/50">
+                  <td class="py-2 px-3">G-03</td>
+                  <td class="py-2 px-3">Lack of observability</td>
+                  <td class="py-2 px-3">Hard to diagnose issues</td>
+                  <td class="py-2 px-3">Medium</td>
+                  <td class="py-2 px-3">Introduce OpenTelemetry, tracing</td>
+                </tr>
+                <tr class="border-b border-border/50">
+                  <td class="py-2 px-3">G-04</td>
+                  <td class="py-2 px-3">No DR</td>
+                  <td class="py-2 px-3">High outage risk</td>
+                  <td class="py-2 px-3">High</td>
+                  <td class="py-2 px-3">Multi-AZ + DR replication</td>
+                </tr>
+                <tr class="border-b border-border/50">
+                  <td class="py-2 px-3">G-05</td>
+                  <td class="py-2 px-3">No ADRs</td>
+                  <td class="py-2 px-3">No decision traceability</td>
+                  <td class="py-2 px-3">Medium</td>
+                  <td class="py-2 px-3">Implement ADR repository</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- 12. TO-BE Architecture -->
+      <section class="bg-card/80 backdrop-blur-sm rounded-xl border border-border/50 p-6 card-shadow">
+        <h2 class="text-xl font-bold mb-4 text-gradient-primary">12. TO-BE Architecture</h2>
+        <div class="space-y-4">
+          <div class="space-y-2">
+            <h3 class="text-lg font-semibold text-foreground">12.1 Architecture Characteristics</h3>
+            <div class="text-muted-foreground">
+              <ul class="list-disc list-inside space-y-1">
+                <li>Microservices with independent bounded contexts</li>
+                <li>Event-driven backbone (Kafka)</li>
+                <li>API Gateway + BFF layer</li>
+                <li>Central Identity Provider</li>
+                <li>Observability stack: Prometheus, Grafana, Jaeger</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <h3 class="text-lg font-semibold text-foreground">12.2 Target Design Pattern Adoption</h3>
+            <div class="text-muted-foreground">
+              <ul class="list-disc list-inside space-y-1">
+                <li>Outbox for event reliability</li>
+                <li>Saga for distributed workflows</li>
+                <li>CQRS for read scalability</li>
+                <li>Cache-aside + Redis</li>
+                <li>Zero Trust security</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <h3 class="text-lg font-semibold text-foreground">12.3 Target Technology Stack</h3>
+            <div class="text-muted-foreground">
+              <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                  <thead>
+                    <tr class="border-b border-border">
+                      <th class="text-left py-2 px-3 font-semibold text-foreground">Layer</th>
+                      <th class="text-left py-2 px-3 font-semibold text-foreground">Tech</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr class="border-b border-border/50">
+                      <td class="py-2 px-3">API Gateway</td>
+                      <td class="py-2 px-3">Kong / APIM</td>
+                    </tr>
+                    <tr class="border-b border-border/50">
+                      <td class="py-2 px-3">Messaging</td>
+                      <td class="py-2 px-3">Kafka / SNS-SQS</td>
+                    </tr>
+                    <tr class="border-b border-border/50">
+                      <td class="py-2 px-3">Storage</td>
+                      <td class="py-2 px-3">PostgreSQL + Redis</td>
+                    </tr>
+                    <tr class="border-b border-border/50">
+                      <td class="py-2 px-3">Observability</td>
+                      <td class="py-2 px-3">Grafana + Jaeger</td>
+                    </tr>
+                    <tr class="border-b border-border/50">
+                      <td class="py-2 px-3">Security</td>
+                      <td class="py-2 px-3">Keycloak / Cognito</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <h3 class="text-lg font-semibold text-foreground">12.4 Target Architecture Diagram</h3>
+            <div class="text-muted-foreground">
+              <div class="bg-secondary/50 rounded-lg p-4 font-mono text-sm overflow-x-auto">
+                <pre class="text-muted-foreground">
+[Mobile/Web] → [BFF] → [API Gateway] → [Microservices]
+                                    ↘ [Kafka Event Bus]
+                                         ↘ [Inventory]
+                                         ↘ [Payment]
+                                         ↘ [Order]
+                                        [Redis Cache]
+                                        [PostgreSQL]</pre>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 13. Roadmap -->
+      <section class="bg-card/80 backdrop-blur-sm rounded-xl border border-border/50 p-6 card-shadow">
+        <h2 class="text-xl font-bold mb-4 text-gradient-primary">13. Roadmap</h2>
+        <div class="space-y-4">
+          <div class="space-y-2">
+            <h3 class="text-lg font-semibold text-foreground">Immediate (0–3 Months)</h3>
+            <div class="text-muted-foreground">
+              <ul class="list-disc list-inside space-y-1">
+                <li>Introduce ADR system</li>
+                <li>Implement Observability (OTel + Grafana)</li>
+                <li>Clean domain boundaries</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <h3 class="text-lg font-semibold text-foreground">Mid-Term (3–9 Months)</h3>
+            <div class="text-muted-foreground">
+              <ul class="list-disc list-inside space-y-1">
+                <li>Introduce Kafka</li>
+                <li>Implement Outbox + Saga patterns</li>
+                <li>Remove shared DB</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <h3 class="text-lg font-semibold text-foreground">Long-Term (9–18 Months)</h3>
+            <div class="text-muted-foreground">
+              <ul class="list-disc list-inside space-y-1">
+                <li>Multi-region DR</li>
+                <li>Full event-driven architecture</li>
+                <li>Automated governance & scorecards</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 14. ADRs -->
+      <section class="bg-card/80 backdrop-blur-sm rounded-xl border border-border/50 p-6 card-shadow">
+        <h2 class="text-xl font-bold mb-4 text-gradient-primary">14. ADRs (Sample)</h2>
+        <div class="space-y-4">
+          <div class="bg-secondary/50 rounded-lg p-4">
+            <h4 class="font-semibold mb-2">ADR-001: Transition to Event-Driven Architecture</h4>
+            <div class="space-y-2 text-sm text-muted-foreground">
+              <p><strong class="text-foreground">Context:</strong> Sync chaining causing failures</p>
+              <p><strong class="text-foreground">Decision:</strong> Introduce Kafka + Outbox</p>
+              <p><strong class="text-foreground">Status:</strong> Proposed</p>
+              <p><strong class="text-foreground">Consequences:</strong> Increased infra complexity; reduced coupling</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 15. Final Scorecard -->
+      <section class="bg-card/80 backdrop-blur-sm rounded-xl border border-border/50 p-6 card-shadow">
+        <h2 class="text-xl font-bold mb-4 text-gradient-primary">15. Final Scorecard (Weighted)</h2>
+        <div class="space-y-4">
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="border-b border-border">
+                  <th class="text-left py-2 px-3 font-semibold text-foreground">Area</th>
+                  <th class="text-left py-2 px-3 font-semibold text-foreground">Weight</th>
+                  <th class="text-left py-2 px-3 font-semibold text-foreground">Score</th>
+                </tr>
+              </thead>
+              <tbody class="text-muted-foreground">
+                <tr class="border-b border-border/50">
+                  <td class="py-2 px-3">Architecture Quality</td>
+                  <td class="py-2 px-3">25%</td>
+                  <td class="py-2 px-3">60/100</td>
+                </tr>
+                <tr class="border-b border-border/50">
+                  <td class="py-2 px-3">NFR Compliance</td>
+                  <td class="py-2 px-3">25%</td>
+                  <td class="py-2 px-3">55/100</td>
+                </tr>
+                <tr class="border-b border-border/50">
+                  <td class="py-2 px-3">TOGAF Alignment</td>
+                  <td class="py-2 px-3">20%</td>
+                  <td class="py-2 px-3">50/100</td>
+                </tr>
+                <tr class="border-b border-border/50">
+                  <td class="py-2 px-3">Pattern Adoption</td>
+                  <td class="py-2 px-3">15%</td>
+                  <td class="py-2 px-3">65/100</td>
+                </tr>
+                <tr class="border-b border-border/50">
+                  <td class="py-2 px-3">Security</td>
+                  <td class="py-2 px-3">15%</td>
+                  <td class="py-2 px-3">52/100</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="mt-4 p-4 bg-primary/10 rounded-lg border border-primary/20">
+            <p class="text-lg font-semibold text-center">
+              <strong>Overall Score:</strong> <span class="text-primary">56/100</span>
+            </p>
+            <p class="text-center text-muted-foreground mt-1">
+              <strong>Maturity Level:</strong> Level 3 – Defined
+            </p>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>

@@ -1,0 +1,25 @@
+<nav class="breadcrumb-container" [class.scrolled]="isScrolled">
+  <div class="breadcrumb-wrapper">
+    <ng-container *ngFor="let item of items; let i = index; let last = last">
+      <!-- Breadcrumb Item -->
+      <div class="breadcrumb-item">
+        <a 
+          *ngIf="item.link && !last" 
+          [routerLink]="item.link"
+          class="breadcrumb-link">
+          {{ item.label }}
+        </a>
+        <span 
+          *ngIf="!item.link || last"
+          class="breadcrumb-current">
+          {{ item.label }}
+        </span>
+      </div>
+      
+      <!-- Chevron Separator -->
+      <div *ngIf="!last" class="breadcrumb-separator">
+        <img src="/assets/icons/breadcrumb_chevron-right.svg" alt=">" class="chevron-icon" />
+      </div>
+    </ng-container>
+  </div>
+</nav>

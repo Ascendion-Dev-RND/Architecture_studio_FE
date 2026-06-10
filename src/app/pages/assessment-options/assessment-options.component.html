@@ -1,0 +1,74 @@
+<div class="min-h-screen gradient-hero">
+  <!-- Breadcrumb Navigation -->
+  <app-breadcrumb [items]="breadcrumbItems" />
+  
+  <nav class="fixed top-0 left-0 right-0 z-50 gradient-lavender bg-background/80 backdrop-blur-md border-0 border-border/50">
+    <div class="container mx-auto px-6 py-4 flex items-center justify-between">
+      <a routerLink="/" class="flex items-center gap-2">
+        <span class="text-lg font-medium tracking-wide bg-gradient-to-r from-coral to-coral-light bg-clip-text text-transparent">
+          Architecture-Studio
+        </span>
+      </a>
+    </div>
+  </nav>
+
+  <main class="pt-32 pb-20 px-6">
+    <div class="container mx-auto max-w-4xl">
+      <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
+        <span class="text-foreground">Assessment </span>
+        <span class="text-gradient-primary">Options</span>
+      </h1>
+      
+      <p class="text-muted-foreground text-lg mb-12">
+        Select assessment criteria and options for your architecture review.
+      </p>
+
+      <div class="bg-card rounded-2xl p-6 card-shadow space-y-6">
+        <!-- Assessment Criteria -->
+        <div>
+          <h2 class="text-xl font-semibold text-foreground mb-4">Assessment Criteria</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <label *ngFor="let criterion of assessmentCriteria" 
+                   class="flex items-center gap-3 p-4 rounded-lg border border-border/50 hover:border-primary/50 cursor-pointer transition-colors">
+              <input 
+                type="checkbox" 
+                [(ngModel)]="criterion.selected"
+                class="w-4 h-4 rounded border-border text-primary focus:ring-primary" />
+              <div class="flex-1">
+                <div class="font-medium text-foreground">{{ criterion.name }}</div>
+                <div class="text-sm text-muted-foreground">{{ criterion.description }}</div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Assessment Depth -->
+        <div>
+          <h2 class="text-xl font-semibold text-foreground mb-4">Assessment Depth</h2>
+          <select 
+            [(ngModel)]="assessmentDepth"
+            class="w-full px-4 py-3 rounded-lg border border-border/50 bg-secondary/50 text-foreground outline-none focus:ring-2 focus:ring-primary">
+            <option value="quick">Quick Review (5-10 min)</option>
+            <option value="standard">Standard Assessment (15-20 min)</option>
+            <option value="comprehensive">Comprehensive Review (30+ min)</option>
+          </select>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex items-center justify-between pt-6">
+          <button
+            routerLink="/architecture-assessment"
+            class="px-6 py-3 rounded-lg text-foreground hover:bg-secondary/50 transition-colors">
+            Back
+          </button>
+          <button
+            (click)="startAssessment()"
+            class="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors">
+            Start Assessment
+            <lucide-icon name="ArrowRight" class="w-5 h-5"></lucide-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>

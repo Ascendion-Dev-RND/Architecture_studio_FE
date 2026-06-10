@@ -1,0 +1,79 @@
+<div class="insert-panel flex flex-col h-full min-h-0">
+
+  <!-- Search -->
+  <div class="px-3 pt-3 pb-2">
+    <div class="relative">
+      <lucide-icon name="Search" class="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></lucide-icon>
+      <input
+        type="text"
+        [(ngModel)]="searchQuery"
+        placeholder="Search components..."
+        class="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 placeholder:text-gray-400">
+    </div>
+  </div>
+
+  <!-- Search results (when searching) -->
+  <div *ngIf="searchQuery.trim()" class="px-3 pb-3 overflow-y-auto flex-1 min-h-0">
+    <div class="grid grid-cols-4 gap-2">
+      <div
+        class="insert-icon-item"
+        *ngFor="let item of filteredItems"
+        (click)="onItemClick(item)"
+        [title]="item.name"
+        draggable="true"
+        (dragstart)="onDragStart($event, item)">
+        <div class="insert-icon-box" [attr.data-category]="item.category">
+          <lucide-icon *ngIf="item.lucideIcon" [name]="item.lucideIcon" class="w-6 h-6"
+            [style.color]="item.category === 'shape' ? '#6366f1' : item.category === 'arrow' ? '#555' : '#607d8b'"></lucide-icon>
+          <img *ngIf="!item.lucideIcon && item.iconUrl" [src]="item.iconUrl" [alt]="item.name" class="w-7 h-7 object-contain">
+          <span *ngIf="!item.lucideIcon && !item.iconUrl" class="text-xs font-bold text-gray-400">{{ getItemInitials(item.name) }}</span>
+        </div>
+        <span class="insert-icon-label">{{ item.name }}</span>
+      </div>
+    </div>
+    <div *ngIf="filteredItems.length === 0" class="flex flex-col items-center gap-2 py-8 text-gray-400">
+      <lucide-icon name="SearchX" class="w-8 h-8"></lucide-icon>
+      <p class="text-xs">No components found</p>
+    </div>
+  </div>
+
+  <!-- Expandable/collapsible categories (when NOT searching) -->
+  <div *ngIf="!searchQuery.trim()" class="flex-1 overflow-y-auto pb-3 min-h-0">
+    <div *ngFor="let cat of categories" class="border-b border-gray-100 last:border-0">
+
+      <!-- Category header (clickable to expand/collapse) -->
+      <button
+        (click)="toggleCategory(cat)"
+        class="w-full flex items-center justify-between px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+        <div class="flex items-center gap-2">
+          <lucide-icon [name]="cat.expanded ? 'ChevronDown' : 'ChevronRight'" class="w-4 h-4 text-gray-400"></lucide-icon>
+          <span>{{ cat.name }}</span>
+        </div>
+        <lucide-icon [name]="cat.expanded ? 'ChevronDown' : 'ChevronRight'" class="w-4 h-4 text-gray-400"></lucide-icon>
+      </button>
+
+      <!-- Category items grid (visible when expanded) -->
+      <div *ngIf="cat.expanded" class="px-3 pb-3">
+        <div class="grid grid-cols-4 gap-2">
+          <div
+            class="insert-icon-item"
+            *ngFor="let item of cat.items"
+            (click)="onItemClick(item)"
+            [title]="item.name"
+            draggable="true"
+            (dragstart)="onDragStart($event, item)">
+            <div class="insert-icon-box" [attr.data-category]="item.category">
+              <lucide-icon *ngIf="item.lucideIcon" [name]="item.lucideIcon" class="w-6 h-6"
+                [style.color]="item.category === 'shape' ? '#6366f1' : item.category === 'arrow' ? '#555' : '#607d8b'"></lucide-icon>
+              <img *ngIf="!item.lucideIcon && item.iconUrl" [src]="item.iconUrl" [alt]="item.name" class="w-7 h-7 object-contain">
+              <span *ngIf="!item.lucideIcon && !item.iconUrl" class="text-xs font-bold text-gray-400">{{ getItemInitials(item.name) }}</span>
+            </div>
+            <span class="insert-icon-label">{{ item.name }}</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>

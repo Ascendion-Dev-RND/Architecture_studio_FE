@@ -1,0 +1,223 @@
+<!-- Requirements Analyzer Modal Overlay -->
+<div *ngIf="isOpen" class="fixed inset-0 z-50 flex items-center justify-center">
+  <!-- Backdrop -->
+  <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" (click)="closeDialog()"></div>
+
+  <!-- Dialog -->
+  <div class="relative w-full max-w-2xl mx-4 bg-white rounded-2xl shadow-2xl overflow-hidden animate-in">
+
+    <!-- Header — title + close are shown ONLY once clarification questions are
+         displayed. During the "Building the Solution Context" loading phase the
+         dialog is a pure progress card with no premature title/close (dismiss
+         via the backdrop); the error phase has its own title + footer actions. -->
+    <div *ngIf="phase === 'questions'"
+         class="px-6 py-4 border-gray-100 flex items-center justify-between" style="background: linear-gradient(135deg, #f0f7ff 0%, #e8f4f8 100%);"
+         >
+      <div class="flex items-center gap-3">
+        <!-- <div class="w-10 h-10 rounded-xl flex items-center justify-center"
+             style="background: linear-gradient(135deg, #0044A3 0%, #03BDD4 100%);">
+          <lucide-icon name="Search" class="w-5 h-5 text-white"></lucide-icon>
+        </div> -->
+        <div>
+          <h2 class="text-lg font-normal" style="color: #1e293b;">Tell us a bit more</h2>
+          <!-- <p class="text-xs" style="color: #64748b;">Analyzing your prompt for completeness</p> -->
+        </div>
+      </div>
+      <button (click)="closeDialog()" class="p-2 rounded-lg hover:bg-gray-200/50 transition-colors">
+        <lucide-icon name="X" class="w-5 h-5" style="color: #64748b;"></lucide-icon>
+      </button>
+    </div>
+
+    <!-- Body -->
+    <div class="px-6 py-5 max-h-[65vh] overflow-y-auto">
+
+      <!-- PHASE: Analyzing -->
+      <div *ngIf="phase === 'analyzing' || phase === 'reanalyzing'" class="text-center py-8">
+        <div class="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center animate-pulse"
+             style="background: linear-gradient(135deg, #0044A3 0%, #03BDD4 100%);">
+          <lucide-icon name="Brain" class="w-8 h-8 text-white"></lucide-icon>
+        </div>
+        <h3 class="text-lg font-semibold mb-2" style="color: #1e293b;">
+          {{ phase === 'analyzing' ? 'Building the Solution Context' : 'Enhancing with Additional Inputs' }}
+        </h3> 
+        <p class="text-sm mb-6" style="color: #64748b;">
+          {{ analysisStatusMessage }}
+        </p>
+
+        <!-- Progress Bar -->
+        <div class="w-full max-w-xs mx-auto h-2 bg-gray-200 rounded-full overflow-hidden">
+          <div class="h-full rounded-full transition-all duration-300"
+               style="background: linear-gradient(90deg, #0044A3 0%, #03BDD4 100%);"
+               [style.width.%]="analysisProgress"></div>
+        </div>
+        <p class="text-xs mt-2" style="color: #94a3b8;">{{ analysisProgress | number:'1.0-0' }}%</p>
+
+        <!-- <div *ngIf="progressSteps.length > 0"
+             class="mt-6 mx-auto max-w-md text-left rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+          <div class="space-y-3">
+            <div *ngFor="let step of progressSteps" class="flex items-start gap-3">
+              <div class="mt-0.5 flex h-6 w-6 items-center justify-center rounded-full"
+                   [style.background]="step.status === 'completed' ? '#dbeafe' : '#e0f2fe'"
+                   [style.color]="step.status === 'completed' ? '#1d4ed8' : '#0369a1'">
+                <lucide-icon [name]="step.status === 'completed' ? 'Check' : 'Loader2'"
+                             class="w-3.5 h-3.5"
+                             [class.animate-spin]="step.status === 'active'"></lucide-icon>
+              </div>
+              <div class="min-w-0 flex-1">
+                <p class="text-sm font-medium" style="color: #1e293b;">{{ step.message }}</p>
+                <p class="text-xs uppercase tracking-wide" style="color: #94a3b8;">{{ step.stage }}</p>
+              </div>
+            </div>
+          </div>
+        </div> -->
+      </div>
+
+      <!-- PHASE: Questions -->
+      <div *ngIf="phase === 'questions'">
+        <!-- Header message -->
+        <div class="mb-5 p-4 rounded-xl" style="background: #f8fafc; border: 1px solid #e2e8f0;">
+          <p class="text-sm" style="color: #475569;">
+            Please provide clarification on {{ questions.length }} area(s) to help generate a better architecture.
+          </p>
+        </div>
+
+        <!-- Prompt preview -->
+        <!-- <div class="mb-5 p-3 rounded-lg" style="background: #eff6ff; border: 1px solid #bfdbfe;">
+          <div class="flex items-start gap-2">
+            <lucide-icon name="MessageSquare" class="w-4 h-4 mt-0.5" style="color: #3b82f6;"></lucide-icon>
+            <div>
+              <span class="text-xs font-medium" style="color: #1d4ed8;">Your prompt:</span>
+              <p class="text-sm mt-1" style="color: #1e40af;">{{ prompt }}</p>
+            </div>
+          </div>
+        </div> -->
+
+        <!-- Questions List -->
+        <div class="space-y-4">
+          <div *ngFor="let q of questions; let i = index"
+               class="p-4 rounded-xl border transition-all"
+               [style.borderColor]="answers[q.id] ? '#3b82f6' : '#e2e8f0'"
+               [style.background]="answers[q.id] ? '#f0f7ff' : '#ffffff'">
+
+            <!-- Question header -->
+            <div class="flex items-start gap-3 mb-3">
+              <div class="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold"
+                   [style.background]="answers[q.id] ? '#3b82f6' : '#e2e8f0'"
+                   [style.color]="answers[q.id] ? '#ffffff' : '#64748b'">
+                {{ answers[q.id] ? '&#10003;' : (i + 1) }}
+              </div>
+              <div class="flex-1">
+                <p class="text-sm font-medium" style="color: #1e293b;">
+                  {{ q.question }}
+                  <span *ngIf="q.required" class="text-red-500 ml-1">*</span>
+                </p>
+                <div class="flex items-center gap-2 mt-1">
+                  <!-- Only show the picker hint when options exist; an
+                       options-less choice question falls back to a text
+                       input, in which case the "Select one" badge would
+                       lie to the user. -->
+                  <span *ngIf="q.options?.length"
+                        class="text-xs px-2 py-0.5 rounded-full inline-block"
+                        [style.background]="q.responseType === 'multiselect' ? '#eff6ff' : '#f0fdf4'"
+                        [style.color]="q.responseType === 'multiselect' ? '#2563eb' : '#16a34a'">
+                    {{ q.responseType === 'multiselect' ? '☑ Select multiple' : '◉ Select one' }}
+                  </span>
+                  <span *ngIf="!q.options?.length"
+                        class="text-xs px-2 py-0.5 rounded-full inline-block"
+                        style="background: #f8fafc; color: #64748b;">
+                    ✎ Free response
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Options as selectable chips (radio or multiselect) -->
+            <div class="flex flex-wrap gap-2 ml-9">
+              <button *ngFor="let option of q.options"
+                      type="button"
+                      (click)="selectOption(q.id, option)"
+                      class="px-3 py-1.5 rounded-full text-sm border transition-all cursor-pointer"
+                      [class.bg-blue-50]="isOptionSelected(q.id, option)"
+                      [class.border-blue-400]="isOptionSelected(q.id, option)"
+                      [class.text-blue-700]="isOptionSelected(q.id, option)"
+                      [class.font-medium]="isOptionSelected(q.id, option)"
+                      [class.border-gray-200]="!isOptionSelected(q.id, option)"
+                      [class.text-gray-600]="!isOptionSelected(q.id, option)"
+                      [class.hover:border-gray-300]="!isOptionSelected(q.id, option)">
+                {{ option }}
+              </button>
+            </div>
+
+            <!-- Custom answer input — placeholder reflects whether chips
+                 above are present (text-input is supplementary) or
+                 missing (text-input is the only response surface). -->
+            <div class="ml-9 mt-2">
+              <input type="text"
+                     [placeholder]="q.options?.length ? 'Or type a custom answer…' : 'Type your answer…'"
+                     [value]="answers[q.id] && !(q.options || []).includes(answers[q.id]) ? answers[q.id] : ''"
+                     (input)="answers[q.id] = $any($event.target).value"
+                     class="w-full px-3 py-1.5 text-sm rounded-lg border border-gray-200 outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200 transition-all"
+                     style="background: #ffffff;" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Answered count -->
+        <div class="mt-4 text-center">
+          <span class="text-xs" style="color: #94a3b8;">
+            {{ answeredCount }} of {{ questions.length }} questions answered
+          </span>
+        </div>
+      </div>
+
+      <!-- PHASE: Error -->
+      <div *ngIf="phase === 'error'" class="text-center py-8">
+        <div class="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center"
+             style="background: #fef2f2;">
+          <lucide-icon name="AlertTriangle" class="w-8 h-8" style="color: #ef4444;"></lucide-icon>
+        </div>
+        <h3 class="text-lg font-semibold mb-2" style="color: #1e293b;">Analysis Unavailable</h3>
+        <p class="text-sm" style="color: #64748b;">{{ errorMessage }}</p>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="px-6 py-4 border-gray-100 flex items-center justify-between"
+         style="background: none;">
+
+      <!-- Left: Skip button -->
+      <button *ngIf="phase !== 'analyzing' && phase !== 'reanalyzing'"
+              type="button"
+              (click)="skipDiscovery()"
+              class="px-4 py-2 text-sm rounded-lg transition-colors"
+              style="color: #64748b; border: 1px solid #e2e8f0;"
+              onmouseover="this.style.background='#f1f5f9'"
+              onmouseout="this.style.background='transparent'">
+        Skip & Proceed
+      </button>
+      <div *ngIf="phase === 'analyzing' || phase === 'reanalyzing'"></div>
+
+      <!-- Right: Primary action -->
+      <div class="flex items-center gap-3">
+        <button *ngIf="phase === 'questions'"
+                type="button"
+                (click)="submitAnswers()"
+                [disabled]="!allRequiredAnswered"
+                class="px-5 py-2 text-sm font-medium rounded-lg text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                style="background: linear-gradient(135deg, #0044A3 0%, #03BDD4 100%);">
+          <lucide-icon name="ArrowRight" class="w-4 h-4 inline-block mr-1"></lucide-icon>
+          Submit Answers
+        </button>
+
+        <button *ngIf="phase === 'error'"
+                type="button"
+                (click)="proceedToWorkspace()"
+                class="px-5 py-2 text-sm font-medium rounded-lg text-white transition-all"
+                style="background: linear-gradient(135deg, #0044A3 0%, #03BDD4 100%);">
+          <lucide-icon name="Sparkles" class="w-4 h-4 inline-block mr-1"></lucide-icon>
+          Generate Architecture
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

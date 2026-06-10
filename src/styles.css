@@ -1,0 +1,294 @@
+/**
+ * Architecture-Studio Design System
+ * 
+ * This file defines the core design system for the application using CSS custom properties.
+ * It leverages Tailwind CSS utilities and establishes a consistent visual language.
+ */
+
+/* Import Mulish and Inter fonts from Google Fonts - Must come before Tailwind directives */
+@import url('https://fonts.googleapis.com/css2?family=Mulish:ital,wght@0,200..1000;1,200..1000&family=Inter:wght@100..900&display=swap');
+
+@font-face {
+  font-family: 'PP Neue Machina';
+  src: url('assets/fonts/pp-neue-machina/PPNeueMachina-Light.woff2') format('woff2');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'PP Neue Machina';
+  src: url('assets/fonts/pp-neue-machina/PPNeueMachina-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'PP Neue Machina';
+  src: url('assets/fonts/pp-neue-machina/PPNeueMachina-Ultrabold.woff2') format('woff2');
+  font-weight: 800; /* change to 900 if needed */
+  font-style: normal;
+  font-display: swap;
+}
+
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================
+   CSS CUSTOM PROPERTIES (DESIGN TOKENS)
+   ============================================ */
+
+@layer base {
+  /**
+   * Light Mode Color Palette
+   */
+  :root {
+    /* Background Colors - New Design System */
+    --background: 224 33% 95%; /* #EDEEF9 */
+    --foreground: 216 12% 24%; /* #3B3F46 */
+
+    /* Card Colors - Glassmorphism */
+    --card: 0 0% 100%;
+    --card-foreground: 216 12% 24%;
+
+    /* Popover colors */
+    --popover: 0 0% 100%;
+    --popover-foreground: 216 12% 24%;
+
+    /* Primary Brand Color - Blue Gradient Start */
+    --primary: 211 100% 32%; /* #0044A3 */
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary Color - Cyan Gradient End */
+    --secondary: 187 97% 43%; /* #03BDD4 */
+    --secondary-foreground: 0 0% 100%;
+
+    /* Muted Colors */
+    --muted: 214 32% 91%; /* #E2E8F0 */
+    --muted-foreground: 215 14% 44%; /* #616874 */
+
+    /* Accent Color - Cyan */
+    --accent: 187 97% 43%;
+    --accent-foreground: 0 0% 100%;
+
+    /* Destructive/Error colors */
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Border and input styling */
+    --border: 220 13% 91%; /* #E5E7EB */
+    --input: 220 13% 91%;
+    --ring: 211 100% 32%;
+
+    /* Border radius base unit */
+    --radius: 0.75rem;
+
+    /* Custom Extended Colors - New Design */
+    --text-subtitle: 215 8% 33%; /* #4C515B */
+    --text-caption: 218 16% 45%; /* #475569 */
+    --text-heading: 216 12% 24%; /* #3B3F46 */
+    --card-shadow: 215 15% 82%; /* #D1D3D8 */
+    --gradient-start: 211 100% 32%; /* #0044A3 */
+    --gradient-end: 187 97% 43%; /* #03BDD4 */
+  }
+
+  /**
+   * Dark Mode Color Palette
+   */
+  .dark {
+    --background: 230 25% 10%;
+    --foreground: 250 30% 95%;
+
+    --card: 230 25% 15%;
+    --card-foreground: 250 30% 95%;
+
+    --popover: 230 25% 15%;
+    --popover-foreground: 250 30% 95%;
+
+    --primary: 352 76% 63%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 230 25% 20%;
+    --secondary-foreground: 250 30% 95%;
+
+    --muted: 230 25% 20%;
+    --muted-foreground: 250 20% 60%;
+
+    --accent: 230 80% 60%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 230 25% 25%;
+    --input: 230 25% 25%;
+    --ring: 352 76% 63%;
+
+    --lavender: 250 30% 20%;
+    --lavender-deep: 250 25% 15%;
+    --coral: 352 76% 63%;
+    --coral-light: 352 76% 73%;
+    --blue-accent: 230 80% 60%;
+    --success: 142 71% 45%;
+  }
+}
+
+/* ============================================
+   BASE ELEMENT STYLES
+   ============================================ */
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+}
+
+/* ============================================
+   CUSTOM UTILITY CLASSES
+   ============================================ */
+
+@layer utilities {
+  /**
+   * Gradient: Lavender Background with Image (24% opacity)
+   */
+  .gradient-lavender {
+    position: relative;
+    background: #EDEEF9;
+  }
+
+  .gradient-lavender::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url('/assets/images/hero-background.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0.24;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .gradient-lavender > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  /**
+   * Gradient: Hero Section with Background Image (24% opacity)
+   */
+  .gradient-hero {
+    position: relative;
+    background-color: #EDEEF9;
+  }
+
+  .gradient-hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url('/assets/images/hero-background.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0.24;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .gradient-hero > * {
+    /* position: relative; */
+    z-index: 1;
+  }
+
+  /**
+   * Text Gradient: Primary (Blue to Cyan)
+   */
+  .text-gradient-primary {
+    background: linear-gradient(109.03deg, #0044A3 4.7%, #03BDD4 94.91%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-fill-color: transparent;
+  }
+
+  /**
+   * Icon Background: Gradient
+   */
+  /* .icon-gradient-bg {
+    background: linear-gradient(140.19deg, rgba(0, 68, 163, 0.1) 6.27%, rgba(3, 189, 212, 0.1) 95%);
+  } */
+
+  /**
+   * Glassmorphism Card Effect
+   */
+  .glass-card {
+    background: rgba(255, 255, 255, 0.6);
+    border: 1px solid #FFFFFF;
+    box-shadow: 0px 2px 4px #D1D3D8;
+    /* backdrop-filter: blur(15px); */
+    /* -webkit-backdrop-filter: blur(15px); */
+  }
+
+  /**
+   * Card Shadow: Default (New Design)
+   */
+  .card-shadow {
+    box-shadow: 0px 2px 4px #D1D3D8;
+  }
+
+  /**
+   * Card Shadow: Hover State
+   */
+  .card-shadow-hover {
+    box-shadow: 0px 4px 20px -2px rgba(0, 0, 0, 0.05);
+  }
+
+  /**
+   * AI Badge Style
+   */
+  .ai-badge {
+    background: #FFFFFF;
+    border: 1px solid #F1F5F9;
+    box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.05);
+    border-radius: 9999px;
+  }
+}
+
+
+.mulish-font {
+  font-family: "Mulish", sans-serif;
+  font-optical-sizing: auto;
+  /* font-weight: <weight>; */
+  font-style: normal;
+}
+
+
+/* Hide scrollbar but keep scroll functionality */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE & Edge */
+  scrollbar-width: none;     /* Firefox */
+}
+
+.mulish-font {
+  font-family: "Mulish", sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;
+}

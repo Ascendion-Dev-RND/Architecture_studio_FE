@@ -1,0 +1,29 @@
+{
+  "id": "aws-reference",
+  "label": "AWS — Architecture Reference (vendor-aligned)",
+  "fidelity": "reference",
+  "comment": "Pixel-aligned to AWS Architecture Icons v3 + AWS Architecture Center reference imagery (cloud / region / VPC / subnet / EKS treatments). Border widths, dash patterns and hex values mirror the AWS reference deck. Edit with care — drift here breaks visual parity with the AWS website.",
+  "cornerStyle": "sharp",
+  "containers": {
+    "CLOUD":              { "fillColor": "none",    "strokeColor": "#232F3E", "strokeWidth": 1.5, "fontColor": "#232F3E", "dashed": 1 },
+    "REGION":             { "fillColor": "#F2F8F9", "strokeColor": "#00A4A6", "strokeWidth": 2,   "fontColor": "#00A4A6", "dashed": 1 },
+    "VPC":                { "fillColor": "#FAF5FF", "strokeColor": "#7C3AED", "strokeWidth": 2,   "fontColor": "#5B21B6" },
+    "VNET":               { "fillColor": "#F0F8FF", "strokeColor": "#0078D4", "strokeWidth": 2,   "fontColor": "#0078D4" },
+    "AZ":                 { "fillColor": "#EBFBFB", "strokeColor": "#14B8B8", "strokeWidth": 1.5, "fontColor": "#0F7676", "dashed": 1 },
+    "AVAILABILITY_ZONE":  { "fillColor": "#EBFBFB", "strokeColor": "#14B8B8", "strokeWidth": 1.5, "fontColor": "#0F7676", "dashed": 1 },
+    "SUBNET":             { "fillColor": "#EFF6FF", "strokeColor": "#4B9CD3", "strokeWidth": 1.5, "fontColor": "#0F4C75" },
+    "CLUSTER":            { "fillColor": "#FFFAF0", "strokeColor": "#FF7F00", "strokeWidth": 2,   "fontColor": "#B45309", "dashed": 1 },
+    "RESOURCE_GROUP":     { "fillColor": "#F1F7FB", "strokeColor": "#0078D4", "strokeWidth": 1.5, "fontColor": "#0078D4" },
+    "SYSTEM_BOUNDARY":    { "fillColor": "none",    "strokeColor": "#232F3E", "strokeWidth": 1.5, "fontColor": "#232F3E", "dashed": 1 },
+    "CONTAINER_BOUNDARY": { "fillColor": "#E1F5EE", "strokeColor": "#0F6E56", "strokeWidth": 1.5, "fontColor": "#0F6E56" },
+    "LAYER":              { "fillColor": "#F8FAFC", "strokeColor": "#475569", "strokeWidth": 1,   "fontColor": "#334155" },
+    "TRUST_BOUNDARY":     { "fillColor": "none",    "strokeColor": "#DC2626", "strokeWidth": 2,   "fontColor": "#991B1B", "dashed": 1 },
+    "NETWORK_SEGMENT":    { "fillColor": "#F8FAFC", "strokeColor": "#475569", "strokeWidth": 1,   "fontColor": "#475569" },
+    "USERS":              { "fillColor": "#EEEDFE", "strokeColor": "#534AB7", "strokeWidth": 1.5, "fontColor": "#534AB7", "dashed": 1 },
+    "EXTERNAL_SYSTEMS":   { "fillColor": "#FAECE7", "strokeColor": "#993C1D", "strokeWidth": 1.5, "fontColor": "#993C1D", "dashed": 1 },
+    "SECURITY":           { "fillColor": "#FEF2F2", "strokeColor": "#DC2626", "strokeWidth": 1.5, "fontColor": "#991B1B", "dashed": 1 },
+    "CICD":               { "fillColor": "#FDF2F8", "strokeColor": "#BE185D", "strokeWidth": 1.5, "fontColor": "#9D174D", "dashed": 1 },
+    "GENERIC":            { "fillColor": "#F8FAFC", "strokeColor": "#94A3B8", "strokeWidth": 1,   "fontColor": "#334155" },
+    "DEFAULT":            { "fillColor": "#F8FAFC", "strokeColor": "#94A3B8", "strokeWidth": 1,   "fontColor": "#334155" }
+  }
+}

@@ -1,0 +1,415 @@
+<div class="h-screen flex flex-col bg-background">
+  <app-breadcrumb [items]="breadcrumbItems" />
+
+  <!-- Top Nav -->
+  <nav class="h-14 border-b border-border bg-card flex items-center px-6 flex-shrink-0 gap-3">
+    <button (click)="backToHub()" class="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors text-sm">
+      <lucide-icon name="chevron-left" class="w-4 h-4"></lucide-icon> Back
+    </button>
+
+    <!-- Artifact tabs (when viewing) -->
+    <div *ngIf="phase === 'viewing' && pack && pack.artifacts.length > 1" class="flex items-center gap-1 ml-4">
+      <button *ngFor="let art of pack.artifacts; let i = index" (click)="selectArtifact(i)"
+        class="px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
+        [ngClass]="i === activeArtifactIndex ? 'bg-primary text-white' : 'bg-secondary text-foreground'">
+        {{ getArtifactTypeLabel(art.artifactType) }}
+      </button>
+    </div>
+
+    <div class="flex-1"></div>
+
+    <!-- Version info -->
+    <span *ngIf="activeArtifact" class="text-xs text-muted-foreground">
+      v{{ activeArtifact.metadata?.version || 1 }}
+    </span>
+
+    <!-- Version history -->
+    <button *ngIf="phase === 'viewing'" (click)="toggleVersionHistory()"
+      [ngClass]="showVersionHistory ? 'bg-primary/10' : 'bg-secondary/50 hover:bg-secondary'"
+      class="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg transition-colors">
+      <lucide-icon name="git-compare" class="w-3.5 h-3.5"></lucide-icon> History
+    </button>
+
+    <!-- Export dropdown -->
+    <div *ngIf="phase === 'viewing'" class="relative">
+      <button (click)="toggleExportMenu()"
+        class="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-secondary/50 hover:bg-secondary rounded-lg transition-colors">
+        <lucide-icon name="download" class="w-3.5 h-3.5"></lucide-icon> Export
+      </button>
+      <div *ngIf="showExportMenu" class="absolute right-0 mt-1 z-20 bg-card border border-border rounded-lg shadow-lg py-1 w-48">
+        <button (click)="exportAs('markdown')" class="w-full text-left px-3 py-2 text-xs hover:bg-secondary/50 flex items-center gap-2">
+          <lucide-icon name="file-text" class="w-3.5 h-3.5"></lucide-icon> Markdown (.md)
+        </button>
+        <button (click)="exportAs('json')" class="w-full text-left px-3 py-2 text-xs hover:bg-secondary/50 flex items-center gap-2">
+          <lucide-icon name="code" class="w-3.5 h-3.5"></lucide-icon> JSON
+        </button>
+        <button *ngIf="activeArtifact?.artifactType === 'OPENAPI' || activeArtifact?.artifactType === 'ASYNCAPI'"
+          (click)="exportAs('yaml')" class="w-full text-left px-3 py-2 text-xs hover:bg-secondary/50 flex items-center gap-2">
+          <lucide-icon name="code-2" class="w-3.5 h-3.5"></lucide-icon> YAML
+        </button>
+        <button (click)="copyToClipboard()" class="w-full text-left px-3 py-2 text-xs hover:bg-secondary/50 flex items-center gap-2">
+          <lucide-icon name="copy" class="w-3.5 h-3.5"></lucide-icon> Copy to Clipboard
+        </button>
+      </div>
+    </div>
+
+    <!-- Chat toggle -->
+    <button *ngIf="phase === 'viewing' && isChatCollapsed" (click)="toggleChat()"
+      class="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-primary text-white rounded-lg hover:bg-primary/90">
+      <lucide-icon name="message-square" class="w-3.5 h-3.5"></lucide-icon> Chat
+    </button>
+  </nav>
+
+  <!-- ════════════════ MAIN CONTENT ════════════════ -->
+  <div class="flex-1 flex overflow-hidden">
+
+    <!-- ══ LEFT: CHAT PANEL ══ -->
+    <div *ngIf="!isChatCollapsed && phase === 'viewing'" class="w-[340px] min-w-[300px] border-r border-border bg-card flex flex-col flex-shrink-0">
+      <div class="h-12 border-b border-border flex items-center justify-between px-4 flex-shrink-0">
+        <div class="flex items-center gap-2">
+          <lucide-icon name="message-square" class="w-4 h-4 text-primary"></lucide-icon>
+          <span class="text-sm font-semibold text-foreground">Refine</span>
+        </div>
+        <button (click)="toggleChat()" class="p-1 hover:bg-secondary rounded">
+          <lucide-icon name="x" class="w-4 h-4 text-muted-foreground"></lucide-icon>
+        </button>
+      </div>
+
+      <div #chatScroll class="flex-1 overflow-y-auto p-3 space-y-3">
+        <div *ngFor="let msg of chatMessages"
+          [ngClass]="{ 'flex justify-end': msg.role === 'user', 'flex justify-start': msg.role !== 'user' }">
+          <div class="max-w-[85%] px-3 py-2 rounded-xl text-xs leading-relaxed"
+            [ngClass]="{
+              'bg-primary text-white': msg.role === 'user',
+              'bg-secondary text-foreground': msg.role === 'assistant' && !msg.isLoading,
+              'bg-secondary/50 text-muted-foreground italic': msg.isLoading,
+              'bg-yellow-500/10 text-yellow-700 border border-yellow-500/20': msg.role === 'system'
+            }">
+            {{ msg.content }}
+          </div>
+        </div>
+      </div>
+
+      <div class="border-t border-border p-3 flex-shrink-0">
+        <div class="flex gap-2">
+          <input [(ngModel)]="userMessage" (keyup.enter)="sendMessage()" type="text"
+            placeholder="Refine: e.g. Add pagination to OpenAPI..."
+            class="flex-1 px-3 py-2 bg-background border border-border rounded-lg text-xs focus:outline-none focus:border-primary"
+            [disabled]="isChatLoading">
+          <button (click)="sendMessage()" [disabled]="!userMessage.trim() || isChatLoading"
+            class="px-3 py-2 bg-primary text-white rounded-lg text-xs hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed">
+            <lucide-icon name="send" class="w-3.5 h-3.5"></lucide-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ CENTER: MAIN CONTENT AREA ══ -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+
+      <!-- ── LOADING STATE ── -->
+      <div *ngIf="isLoading" class="flex-1 flex items-center justify-center">
+        <div class="text-center">
+          <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4 animate-pulse">
+            <lucide-icon name="sparkles" class="w-8 h-8 text-primary"></lucide-icon>
+          </div>
+          <p class="text-sm text-foreground font-medium">{{ loadingMessage }}</p>
+          <p class="text-xs text-muted-foreground mt-1">This may take a moment...</p>
+        </div>
+      </div>
+
+      <!-- ── ERROR STATE ── -->
+      <div *ngIf="phase === 'error' && !isLoading" class="flex-1 flex items-center justify-center">
+        <div class="text-center max-w-md px-6">
+          <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 mb-4">
+            <lucide-icon name="alert-circle" class="w-8 h-8 text-red-500"></lucide-icon>
+          </div>
+          <h3 class="text-lg font-semibold text-foreground mb-2">Generation Failed</h3>
+          <p class="text-sm text-muted-foreground mb-4">{{ errorMessage }}</p>
+          <div class="flex items-center justify-center gap-3">
+            <button (click)="retryGeneration()" class="px-4 py-2 bg-primary text-white rounded-lg text-sm hover:bg-primary/90">Retry</button>
+            <button (click)="backToHub()" class="px-4 py-2 bg-secondary text-foreground rounded-lg text-sm hover:bg-secondary/80">Back to Hub</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── CLARIFICATION PHASE ── -->
+      <div *ngIf="phase === 'clarification' && !isLoading && clarifyResponse && clarifyResponse.questions.length > 0"
+        class="flex-1 overflow-y-auto p-6">
+        <div class="max-w-2xl mx-auto">
+          <div class="bg-card rounded-2xl border border-border p-6 shadow-sm text-center">
+            <div class="inline-flex items-center justify-center w-14 h-14 rounded-full bg-primary/10 mb-4">
+              <lucide-icon name="help-circle" class="w-7 h-7 text-primary"></lucide-icon>
+            </div>
+            <h2 class="text-xl font-bold text-foreground mb-2">Clarification Questions Ready</h2>
+            <p class="text-sm text-muted-foreground mb-5">
+              Answer the questions in the popup to improve artifact quality before generation.
+            </p>
+            <div class="flex items-center justify-center gap-3">
+              <button (click)="showClarificationModal = true"
+                class="px-5 py-2.5 bg-primary text-white rounded-xl text-sm font-medium hover:bg-primary/90">
+                Open Questions
+              </button>
+              <button (click)="skipClarifications()"
+                class="px-5 py-2.5 bg-secondary text-foreground rounded-xl text-sm hover:bg-secondary/80">
+                Skip &amp; Generate
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── VIEWING PHASE: DYNAMIC SECTION RENDERER ── -->
+      <div *ngIf="phase === 'viewing' && activeArtifact && !isLoading" class="flex-1 overflow-y-auto">
+
+        <!-- Artifact Header -->
+        <div class="px-6 py-4 border-b border-border bg-card/50">
+          <div class="flex items-center gap-3">
+            <lucide-icon [name]="getSectionIcon(activeArtifact.artifactType === 'OPENAPI' || activeArtifact.artifactType === 'ASYNCAPI' ? 'yaml' : 'markdown')" class="w-5 h-5 text-primary"></lucide-icon>
+            <div>
+              <h2 class="text-lg font-semibold text-foreground">{{ activeArtifact.title }}</h2>
+              <div class="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
+                <span class="px-2 py-0.5 bg-primary/10 text-primary rounded-full">{{ getArtifactTypeLabel(activeArtifact.artifactType) }}</span>
+                <span>{{ activeArtifact.sections.length }} sections</span>
+                <span>v{{ activeArtifact.metadata?.version || 1 }}</span>
+                <span class="px-2 py-0.5 rounded-full" [class.bg-yellow-100]="activeArtifact.status === 'draft'" [class.text-yellow-700]="activeArtifact.status === 'draft'"
+                  [class.bg-green-100]="activeArtifact.status === 'final'" [class.text-green-700]="activeArtifact.status === 'final'">
+                  {{ activeArtifact.status }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sections -->
+        <div class="p-6 space-y-4 max-w-5xl mx-auto">
+          <div *ngFor="let section of sortedSections" class="bg-card rounded-xl border border-border overflow-hidden">
+            <!-- Section Header -->
+            <button (click)="toggleSection(section.id)"
+              class="w-full flex items-center gap-3 px-5 py-3.5 hover:bg-secondary/30 transition-colors text-left">
+              <lucide-icon [name]="getSectionIcon(section.type)" class="w-4 h-4 text-muted-foreground flex-shrink-0"></lucide-icon>
+              <span class="text-sm font-semibold text-foreground flex-1">{{ section.title }}</span>
+              <span class="text-xs px-1.5 py-0.5 rounded" [class]="getConfidenceColor(section.confidence)">
+                {{ (section.confidence * 100) | number:'1.0-0' }}%
+              </span>
+              <lucide-icon [name]="isSectionCollapsed(section.id) ? 'chevron-right' : 'chevron-down'" class="w-4 h-4 text-muted-foreground"></lucide-icon>
+            </button>
+
+            <!-- Section Content -->
+            <div *ngIf="!isSectionCollapsed(section.id)" class="px-5 pb-4 border-t border-border/50">
+
+              <!-- Markdown content -->
+              <div *ngIf="section.type === 'markdown'" class="prose prose-sm max-w-none pt-3 text-foreground text-sm whitespace-pre-wrap leading-relaxed">{{ section.content }}</div>
+
+              <!-- YAML content -->
+              <div *ngIf="section.type === 'yaml'" class="pt-3">
+                <pre class="bg-background rounded-lg p-4 text-xs font-mono text-foreground overflow-x-auto max-h-[500px] overflow-y-auto border border-border/50">{{ section.content }}</pre>
+              </div>
+
+              <!-- JSON content -->
+              <div *ngIf="section.type === 'json'" class="pt-3">
+                <pre class="bg-background rounded-lg p-4 text-xs font-mono text-foreground overflow-x-auto max-h-[500px] overflow-y-auto border border-border/50">{{ section.content }}</pre>
+              </div>
+
+              <!-- Table content -->
+              <div *ngIf="section.type === 'table' && isTableContent(section.content)" class="pt-3 overflow-x-auto">
+                <table class="w-full text-xs">
+                  <thead>
+                    <tr class="border-b border-border">
+                      <th *ngFor="let h of getTableHeaders(section.content)" class="text-left py-2 px-3 font-semibold text-foreground capitalize">
+                        {{ h }}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let row of section.content" class="border-b border-border/30 hover:bg-secondary/20">
+                      <td *ngFor="let h of getTableHeaders(section.content)" class="py-2 px-3 text-foreground">
+                        {{ row[h] }}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Checklist content -->
+              <div *ngIf="section.type === 'checklist' && isChecklistContent(section.content)" class="pt-3 space-y-2">
+                <div *ngFor="let item of section.content; let idx = index"
+                  (click)="toggleChecklistItem(section.id, idx)"
+                  class="flex items-start gap-3 p-2 rounded-lg hover:bg-secondary/20 cursor-pointer transition-colors">
+                  <div class="flex-shrink-0 mt-0.5 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors"
+                    [class.bg-primary]="item.checked" [class.border-primary]="item.checked"
+                    [class.border-border]="!item.checked">
+                    <lucide-icon *ngIf="item.checked" name="check" class="w-3 h-3 text-white"></lucide-icon>
+                  </div>
+                  <span class="text-sm text-foreground" [class.line-through]="item.checked" [class.text-muted-foreground]="item.checked">
+                    {{ item.item }}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Section Actions -->
+              <div class="flex items-center gap-2 mt-3 pt-3 border-t border-border/30">
+                <button *ngIf="section.actions?.includes('refine')" (click)="refineSection(section.id)"
+                  class="flex items-center gap-1 px-2.5 py-1 text-xs text-muted-foreground hover:text-foreground bg-secondary/30 hover:bg-secondary rounded-md transition-colors">
+                  <lucide-icon name="edit" class="w-3 h-3"></lucide-icon> Refine
+                </button>
+                <button *ngIf="section.actions?.includes('regenerate')" (click)="regenerateSection(section.id)"
+                  class="flex items-center gap-1 px-2.5 py-1 text-xs text-muted-foreground hover:text-foreground bg-secondary/30 hover:bg-secondary rounded-md transition-colors">
+                  <lucide-icon name="refresh-cw" class="w-3 h-3"></lucide-icon> Regenerate
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Assumptions & Open Questions -->
+          <div *ngIf="activeArtifact.assumptions?.length" class="bg-yellow-50 border border-yellow-200 rounded-xl p-5">
+            <h3 class="text-sm font-semibold text-yellow-800 mb-2 flex items-center gap-2">
+              <lucide-icon name="alert-triangle" class="w-4 h-4"></lucide-icon> Assumptions
+            </h3>
+            <ul class="space-y-1">
+              <li *ngFor="let a of activeArtifact.assumptions" class="text-xs text-yellow-700 flex items-start gap-2">
+                <span class="mt-1.5 w-1 h-1 bg-yellow-500 rounded-full flex-shrink-0"></span> {{ a }}
+              </li>
+            </ul>
+          </div>
+
+          <div *ngIf="activeArtifact.openQuestions?.length" class="bg-blue-50 border border-blue-200 rounded-xl p-5">
+            <h3 class="text-sm font-semibold text-blue-800 mb-2 flex items-center gap-2">
+              <lucide-icon name="help-circle" class="w-4 h-4"></lucide-icon> Open Questions
+            </h3>
+            <ul class="space-y-1">
+              <li *ngFor="let q of activeArtifact.openQuestions" class="text-xs text-blue-700 flex items-start gap-2">
+                <span class="mt-1.5 w-1 h-1 bg-blue-500 rounded-full flex-shrink-0"></span> {{ q }}
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ RIGHT: VERSION HISTORY PANEL ══ -->
+    <div *ngIf="showVersionHistory && phase === 'viewing'" class="w-[280px] border-l border-border bg-card flex flex-col flex-shrink-0">
+      <div class="h-12 border-b border-border flex items-center justify-between px-4 flex-shrink-0">
+        <span class="text-sm font-semibold text-foreground flex items-center gap-2">
+          <lucide-icon name="git-compare" class="w-4 h-4 text-primary"></lucide-icon> Version History
+        </span>
+        <button (click)="toggleVersionHistory()" class="p-1 hover:bg-secondary rounded">
+          <lucide-icon name="x" class="w-4 h-4 text-muted-foreground"></lucide-icon>
+        </button>
+      </div>
+      <div class="flex-1 overflow-y-auto p-3 space-y-2">
+        <div *ngFor="let v of versionHistory" class="bg-background rounded-lg p-3 border border-border/50">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-xs font-semibold text-foreground">v{{ v.version }}</span>
+            <span class="text-[10px] text-muted-foreground">{{ v.timestamp | date:'short' }}</span>
+          </div>
+          <p class="text-xs text-muted-foreground mb-2 line-clamp-2">{{ v.summary }}</p>
+          <div class="flex gap-1.5">
+            <button (click)="compareVersion(v)" class="text-[10px] px-2 py-0.5 bg-secondary/50 hover:bg-secondary rounded text-foreground">
+              {{ comparingVersion === v ? 'Hide' : 'Compare' }}
+            </button>
+            <button (click)="restoreVersion(v)" class="text-[10px] px-2 py-0.5 bg-primary/10 hover:bg-primary/20 rounded text-primary">
+              Restore
+            </button>
+          </div>
+        </div>
+        <div *ngIf="versionHistory.length === 0" class="text-xs text-muted-foreground text-center py-8">No versions yet</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div *ngIf="showClarificationModal && clarifyResponse"
+  class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+  <div class="bg-card rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col m-4">
+    <div class="flex items-center justify-between p-5 border-b border-border">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+          <lucide-icon name="help-circle" class="w-5 h-5 text-primary"></lucide-icon>
+        </div>
+        <div>
+          <h2 class="text-lg font-semibold text-foreground">Clarification Questions</h2>
+          <p class="text-sm text-muted-foreground">
+            Help Artifact Hub generate a more accurate document
+          </p>
+        </div>
+      </div>
+      <button (click)="closeClarificationModal()"
+        class="p-2 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors">
+        <lucide-icon name="x" class="w-5 h-5"></lucide-icon>
+      </button>
+    </div>
+
+    <div class="flex-1 overflow-y-auto p-5">
+      <div class="mb-6">
+        <div class="flex items-center justify-between text-xs text-muted-foreground mb-2">
+          <span>{{ answeredCount }} of {{ clarifyResponse.questions.length }} answered</span>
+          <span *ngIf="requiredUnanswered > 0" class="text-amber-500">{{ requiredUnanswered }} required remaining</span>
+          <span *ngIf="requiredUnanswered === 0" class="text-green-500">All required answered</span>
+        </div>
+        <div class="w-full bg-secondary rounded-full h-2">
+          <div class="bg-primary h-2 rounded-full transition-all duration-300"
+            [style.width.%]="clarifyResponse.questions.length > 0 ? (answeredCount / clarifyResponse.questions.length) * 100 : 0"></div>
+        </div>
+      </div>
+
+      <div class="space-y-4">
+        <div *ngFor="let q of clarifyResponse.questions; let i = index"
+          class="p-4 bg-secondary/30 rounded-xl border border-border/50 hover:border-primary/30 transition-colors">
+          <div class="flex items-start gap-3 mb-3">
+            <span class="flex-shrink-0 w-7 h-7 bg-primary/10 rounded-full flex items-center justify-center text-primary text-sm font-bold">
+              {{ i + 1 }}
+            </span>
+            <div class="flex-1">
+              <p class="text-sm font-medium text-foreground">{{ q.question }}</p>
+              <div class="flex items-center gap-2 mt-1">
+                <span class="text-xs text-muted-foreground bg-secondary px-2 py-0.5 rounded">{{ q.category }}</span>
+                <span *ngIf="q.required" class="text-xs text-red-500 font-medium">Required</span>
+              </div>
+            </div>
+            <lucide-icon *ngIf="clarificationAnswers[q.id]" name="check-circle-2" class="w-5 h-5 text-green-500 flex-shrink-0"></lucide-icon>
+          </div>
+
+          <div class="flex flex-wrap gap-2 mb-2 ml-10">
+            <button *ngFor="let opt of q.options"
+              (click)="answerClarification(q.id, opt)"
+              [ngClass]="{
+                'bg-primary text-white shadow-sm': clarificationAnswers[q.id] === opt,
+                'bg-card text-foreground hover:bg-secondary border border-border': clarificationAnswers[q.id] !== opt
+              }"
+              class="px-3 py-1.5 text-xs rounded-full transition-all">
+              {{ opt }}
+            </button>
+          </div>
+
+          <div *ngIf="q.allowFreeText" class="ml-10">
+            <input type="text"
+              placeholder="Or type your own answer..."
+              [value]="clarificationAnswers[q.id] && !isClarificationAnswerFromOptions(q.id) ? clarificationAnswers[q.id] : ''"
+              (blur)="setClarificationFreeText(q.id, $event)"
+              (keyup.enter)="setClarificationFreeText(q.id, $event)"
+              class="w-full mt-2 px-3 py-2 bg-background border border-border rounded-lg text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex items-center justify-between p-5 border-t border-border bg-secondary/20">
+      <button (click)="skipClarifications()"
+        class="px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors">
+        Skip &amp; Generate Anyway
+      </button>
+      <div class="flex items-center gap-3">
+        <span class="text-xs text-muted-foreground">
+          {{ sufficiencyPercent }}% confident
+        </span>
+        <button (click)="submitClarifications()"
+          class="px-6 py-2.5 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2 shadow-sm">
+          <lucide-icon name="sparkles" class="w-4 h-4"></lucide-icon>
+          Generate Document
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

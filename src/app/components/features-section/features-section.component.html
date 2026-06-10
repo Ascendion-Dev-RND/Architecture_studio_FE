@@ -1,0 +1,63 @@
+<section id="features" class="py-8">
+  <div class="container mx-auto px-6">
+    <!-- Feature Cards Grid - 3 in first row, 2 in second row -->
+    <div class="space-y-6">
+      <!-- First Row: 3 cards -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
+        <!-- Solution Blueprint Card -->
+        <app-feature-card
+          title="Solution Blueprint"
+          tagline="End-to-end solutions"
+          description="Convert requirements into complete end-to-end system solutions with detailed specifications"
+          svgIcon="/assets/icons/solution_blueprint.svg"
+          iconColor="text-accent"
+          className="animate-fade-in"
+          href="/solution-blueprint">
+        </app-feature-card>
+        
+        <!-- Architecture Workbench Card -->
+        <app-feature-card
+          title="Architecture Workbench"
+          tagline="From ideas to blueprints"
+          description="Turn ideas and requirements into comprehensive architectures instantly with AI assistance"
+          svgIcon="/assets/icons/architecture_workbench.svg"
+          className="animate-fade-in"
+          href="/architecture-generator">
+        </app-feature-card>
+        
+        <!-- Artifact Hub Card -->
+        <app-feature-card
+          title="Artifact Hub"
+          tagline="Legacy to modern"
+          description="Modernize legacyarchitectures and systems with AI-driven design approaches and migrationstrategies"
+          svgIcon="/assets/icons/artifact_hub.svg"
+          className="animate-fade-in"
+          href="/artifact-hub">
+        </app-feature-card>
+      </div>
+      
+      <!-- Second Row: 2 cards left-aligned -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
+        <!-- Architecture Assessment Card -->
+        <app-feature-card
+          title="Architecture Assessment"
+          tagline="Review & validate"
+          description="Review, validate, and assess architecture for risks, NFRs, TOGAF and best-practices"
+          svgIcon="/assets/icons/architecture_assessment.svg"
+          className="animate-fade-in"
+          href="/architecture-assessment">
+        </app-feature-card>
+        
+        <!-- Modernization Studio Card -->
+        <app-feature-card
+          title="Modernization Studio"
+          tagline="Generate artifacts"
+          description="Generate all technical artifacts including HLD, LLD, and other architecturedocumentation"
+          svgIcon="/assets/icons/modernization_studio.svg"
+          className="animate-fade-in"
+          href="/modernization/discovery">
+        </app-feature-card>
+      </div>
+    </div>
+  </div>
+</section>

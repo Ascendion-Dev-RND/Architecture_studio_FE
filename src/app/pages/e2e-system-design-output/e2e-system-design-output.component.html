@@ -1,0 +1,398 @@
+<div class="min-h-screen bg-background">
+  <!-- Breadcrumb Navigation -->
+  <app-breadcrumb [items]="breadcrumbItems" />
+  
+  <!-- Header -->
+  <nav class="fixed top-0 left-0 right-0 z-50 gradient-lavender backdrop-blur-md border-0 border-border/50">
+    <div class="container mx-auto px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <a routerLink="/solution-blueprint" class="p-2 hover:bg-secondary rounded-lg transition-colors">
+          <lucide-icon name="ArrowLeft" class="w-5 h-5 text-muted-foreground"></lucide-icon>
+        </a>
+        <span class="text-lg font-medium tracking-wide bg-gradient-to-r from-coral to-coral-light bg-clip-text text-transparent">
+          Solution Blueprint
+        </span>
+      </div>
+      
+      <!-- Action Icons -->
+      <div class="flex items-center gap-2">
+        <button 
+          (click)="downloadBlueprint()"
+          title="Download Blueprint"
+          class="p-2 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors">
+          <lucide-icon name="Download" class="w-5 h-5"></lucide-icon>
+        </button>
+        <button 
+          (click)="regenerateBlueprint()"
+          title="Regenerate Blueprint"
+          class="p-2 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors">
+          <lucide-icon name="RefreshCw" class="w-5 h-5"></lucide-icon>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="pt-24 pb-20 px-6">
+    <div class="container mx-auto max-w-5xl">
+      <!-- Title -->
+      <div class="mb-8">
+        <h1 class="text-3xl font-bold text-foreground mb-2">{{ systemName }}</h1>
+        <p class="text-muted-foreground">Comprehensive solution blueprint document</p>
+      </div>
+
+      <!-- Loading State -->
+      <div *ngIf="isLoading" class="flex flex-col items-center justify-center py-20">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-coral mb-4"></div>
+        <p class="text-muted-foreground">Generating comprehensive solution blueprint...</p>
+      </div>
+
+      <!-- Error Message -->
+      <div *ngIf="errorMessage" class="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4 mb-6">
+        <p class="text-amber-400">{{ errorMessage }}</p>
+      </div>
+
+      <!-- Sections -->
+      <div class="space-y-8" *ngIf="!isLoading">
+        
+        <!-- 1. Proposed Solution -->
+        <section class="bg-card rounded-xl p-6 card-shadow">
+          <div class="flex items-center gap-3 mb-4">
+            <lucide-icon name="Lightbulb" class="w-5 h-5 text-coral"></lucide-icon>
+            <h2 class="text-xl font-semibold text-foreground">Proposed Solution</h2>
+          </div>
+          
+          <!-- Solution Overview -->
+          <div class="mb-6">
+            <p class="text-muted-foreground leading-relaxed">{{ solutionOverview }}</p>
+          </div>
+          
+          <!-- Key Services -->
+          <div *ngIf="keyServices.length > 0" class="mb-6">
+            <h3 class="font-medium text-foreground mb-3">Key Services</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div *ngFor="let service of keyServices" class="p-3 bg-secondary/30 rounded-lg border-l-4 border-coral">
+                <span class="font-medium text-coral">{{ service.name }}</span>
+                <p class="text-sm text-muted-foreground mt-1">{{ service.description }}</p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Communication Patterns -->
+          <div *ngIf="communicationPatterns.length > 0" class="mb-6">
+            <h3 class="font-medium text-foreground mb-3">Communication Patterns</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div *ngFor="let pattern of communicationPatterns" class="p-3 bg-secondary/30 rounded-lg">
+                <span class="font-medium text-coral">{{ pattern.type }}</span>
+                <p class="text-sm text-muted-foreground mt-1">{{ pattern.description }}</p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Data Layer -->
+          <div *ngIf="dataLayerComponents.length > 0" class="mb-6">
+            <h3 class="font-medium text-foreground mb-3">Data Layer</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div *ngFor="let component of dataLayerComponents" class="p-3 bg-secondary/30 rounded-lg">
+                <span class="font-medium text-coral">{{ component.name }}</span>
+                <p class="text-sm text-muted-foreground mt-1">{{ component.purpose }}</p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Infrastructure -->
+          <div *ngIf="infrastructureComponents.length > 0">
+            <h3 class="font-medium text-foreground mb-3">Infrastructure</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div *ngFor="let infra of infrastructureComponents" class="p-3 bg-secondary/30 rounded-lg">
+                <span class="font-medium text-coral">{{ infra.name }}</span>
+                <p class="text-sm text-muted-foreground mt-1">{{ infra.purpose }}</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2. High-Level Design (HLD) with Architecture Diagram -->
+        <section class="bg-card rounded-xl p-6 card-shadow">
+          <div class="flex items-center gap-3 mb-4">
+            <lucide-icon name="Layers" class="w-5 h-5 text-coral"></lucide-icon>
+            <h2 class="text-xl font-semibold text-foreground">High-Level Design (HLD)</h2>
+          </div>
+          
+          <!-- Architecture Diagram -->
+          <div *ngIf="architectureDiagram" class="mb-6">
+            <h3 class="font-medium text-foreground mb-3">Architecture Diagram</h3>
+            <div class="bg-white rounded-lg border border-border overflow-hidden" style="min-height: 400px;">
+              <app-mermaid-canvas [diagramData]="architectureDiagram"></app-mermaid-canvas>
+            </div>
+          </div>
+
+          <!-- Architecture Details -->
+          <ul class="space-y-3">
+            <li *ngFor="let detail of architectureDetails; let i = index" class="flex items-start gap-2 text-muted-foreground">
+              <span class="text-coral font-medium">{{ i + 1 }}.</span>
+              <span>{{ detail }}</span>
+            </li>
+          </ul>
+        </section>
+
+        <!-- 3. Technical Explanation (Detailed Points) -->
+        <section class="bg-card rounded-xl p-6 card-shadow">
+          <div class="flex items-center gap-3 mb-4">
+            <lucide-icon name="Code" class="w-5 h-5 text-coral"></lucide-icon>
+            <h2 class="text-xl font-semibold text-foreground">Technical Explanation</h2>
+          </div>
+          
+          <!-- Technology Stack -->
+          <h3 class="font-medium text-foreground mb-4">Technology Stack</h3>
+          <div class="overflow-x-auto mb-6">
+            <table class="w-full">
+              <thead>
+                <tr class="border-b border-border">
+                  <th class="text-left py-2 pr-4 text-foreground font-medium">Layer</th>
+                  <th class="text-left py-2 pr-4 text-foreground font-medium">Primary</th>
+                  <th class="text-left py-2 text-foreground font-medium">Alternatives</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let tech of techStack" class="border-b border-border/50">
+                  <td class="py-3 pr-4 text-foreground">{{ tech.layer }}</td>
+                  <td class="py-3 pr-4 text-coral font-medium">{{ tech.primary }}</td>
+                  <td class="py-3 text-muted-foreground">{{ tech.alternatives }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Security Considerations -->
+          <h3 class="font-medium text-foreground mb-4">Security Architecture</h3>
+          <div class="grid gap-4 mb-6">
+            <div *ngFor="let item of securityApproach" class="p-3 bg-secondary/30 rounded-lg">
+              <span class="font-medium text-coral">{{ item.aspect }}:</span>
+              <span class="text-muted-foreground ml-2">{{ item.detail }}</span>
+            </div>
+          </div>
+
+          <!-- Sequence Diagram -->
+          <div *ngIf="sequenceDiagram" class="mb-6">
+            <h3 class="font-medium text-foreground mb-3">Sequence Diagram</h3>
+            <div class="bg-white rounded-lg border border-border overflow-hidden" style="min-height: 400px;">
+              <app-mermaid-canvas [diagramData]="sequenceDiagram"></app-mermaid-canvas>
+            </div>
+          </div>
+
+          <!-- ER Diagram -->
+          <div *ngIf="erDiagram" class="mb-6">
+            <h3 class="font-medium text-foreground mb-3">Entity Relationship Diagram</h3>
+            <div class="bg-white rounded-lg border border-border overflow-hidden" style="min-height: 400px;">
+              <app-mermaid-canvas [diagramData]="erDiagram"></app-mermaid-canvas>
+            </div>
+          </div>
+
+          <!-- API Specifications -->
+          <div *ngIf="apis.length > 0">
+            <h3 class="font-medium text-foreground mb-3">API Specifications</h3>
+            <div class="overflow-x-auto">
+              <table class="w-full">
+                <thead>
+                  <tr class="border-b border-border">
+                    <th class="text-left py-2 pr-4 text-foreground font-medium">Method</th>
+                    <th class="text-left py-2 pr-4 text-foreground font-medium">Endpoint</th>
+                    <th class="text-left py-2 text-foreground font-medium">Description</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let api of apis" class="border-b border-border/50">
+                    <td class="py-2 pr-4">
+                      <span [ngClass]="{
+                        'bg-green-500/20 text-green-400': api.method === 'GET',
+                        'bg-blue-500/20 text-blue-400': api.method === 'POST',
+                        'bg-amber-500/20 text-amber-400': api.method === 'PUT',
+                        'bg-red-500/20 text-red-400': api.method === 'DELETE'
+                      }" class="px-2 py-1 rounded text-xs font-medium">{{ api.method }}</span>
+                    </td>
+                    <td class="py-2 pr-4 text-coral font-mono text-sm">{{ api.path }}</td>
+                    <td class="py-2 text-muted-foreground text-sm">{{ api.description }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Database Schema -->
+          <div *ngIf="databaseSchema.length > 0" class="mt-6">
+            <h3 class="font-medium text-foreground mb-3">Database Schema</h3>
+            <div class="grid gap-4">
+              <div *ngFor="let table of databaseSchema" class="p-4 bg-secondary/30 rounded-lg">
+                <h4 class="font-medium text-coral mb-2">{{ table.name }}</h4>
+                <p class="text-sm text-muted-foreground mb-3">{{ table.description }}</p>
+                <div class="overflow-x-auto">
+                  <table class="w-full text-sm">
+                    <thead>
+                      <tr class="border-b border-border/50">
+                        <th class="text-left py-1 pr-3 text-foreground">Column</th>
+                        <th class="text-left py-1 pr-3 text-foreground">Type</th>
+                        <th class="text-left py-1 text-foreground">Constraints</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let col of table.columns" class="border-b border-border/30">
+                        <td class="py-1 pr-3 text-muted-foreground">{{ col.name }}</td>
+                        <td class="py-1 pr-3 text-coral">{{ col.type }}</td>
+                        <td class="py-1 text-muted-foreground">{{ col.constraints }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 4. Microservices Breakdown -->
+        <section class="bg-card rounded-xl p-6 card-shadow">
+          <div class="flex items-center gap-3 mb-4">
+            <lucide-icon name="Server" class="w-5 h-5 text-coral"></lucide-icon>
+            <h2 class="text-xl font-semibold text-foreground">Microservices Breakdown</h2>
+          </div>
+          <div class="grid sm:grid-cols-2 gap-4">
+            <div *ngFor="let service of microservices" class="p-4 bg-secondary/30 rounded-lg border-l-4 border-coral">
+              <h3 class="font-medium text-foreground mb-2">{{ service.name }}</h3>
+              <p class="text-sm text-muted-foreground">{{ service.responsibility }}</p>
+            </div>
+          </div>
+          
+          <h3 class="font-medium text-foreground mt-6 mb-4">Cross-Cutting Components</h3>
+          <div class="grid sm:grid-cols-2 gap-4">
+            <div *ngFor="let component of crossCuttingComponents" class="p-4 bg-secondary/30 rounded-lg border-l-4 border-lavender">
+              <h3 class="font-medium text-foreground mb-2">{{ component.name }}</h3>
+              <p class="text-sm text-muted-foreground">{{ component.purpose }}</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 5. Deployment Model -->
+        <section class="bg-card rounded-xl p-6 card-shadow">
+          <div class="flex items-center gap-3 mb-4">
+            <lucide-icon name="Cloud" class="w-5 h-5 text-coral"></lucide-icon>
+            <h2 class="text-xl font-semibold text-foreground">Deployment Model</h2>
+          </div>
+          
+          <!-- Deployment Diagram -->
+          <div *ngIf="deploymentDiagram" class="mb-6">
+            <h3 class="font-medium text-foreground mb-3">Deployment Architecture Diagram</h3>
+            <div class="bg-white rounded-lg border border-border overflow-hidden" style="min-height: 400px;">
+              <app-mermaid-canvas [diagramData]="deploymentDiagram"></app-mermaid-canvas>
+            </div>
+          </div>
+
+          <!-- Environment Details -->
+          <h3 class="font-medium text-foreground mb-4">Environment Configuration</h3>
+          <div class="space-y-4">
+            <div *ngFor="let deploy of deploymentDetails" class="p-4 bg-secondary/30 rounded-lg">
+              <h4 class="font-medium text-coral mb-2">{{ deploy.env }}</h4>
+              <p class="text-sm text-muted-foreground">{{ deploy.config }}</p>
+            </div>
+          </div>
+
+          <!-- DevOps Recommendations -->
+          <div *ngIf="devopsRecommendations.length > 0" class="mt-6">
+            <h3 class="font-medium text-foreground mb-4">DevOps Best Practices</h3>
+            <ul class="grid sm:grid-cols-2 gap-2">
+              <li *ngFor="let rec of devopsRecommendations" class="flex items-start gap-2 text-muted-foreground">
+                <span class="text-coral mt-1">✓</span>
+                <span class="text-sm">{{ rec }}</span>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Scalability Notes -->
+          <div *ngIf="scalabilityNotes.length > 0" class="mt-6">
+            <h3 class="font-medium text-foreground mb-4">Scalability Considerations</h3>
+            <ul class="space-y-2">
+              <li *ngFor="let note of scalabilityNotes" class="flex items-start gap-2 text-muted-foreground">
+                <span class="text-coral mt-1">→</span>
+                <span class="text-sm">{{ note }}</span>
+              </li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- 6. Non-Functional Requirements -->
+        <section class="bg-card rounded-xl p-6 card-shadow">
+          <div class="flex items-center gap-3 mb-4">
+            <lucide-icon name="Target" class="w-5 h-5 text-coral"></lucide-icon>
+            <h2 class="text-xl font-semibold text-foreground">Non-Functional Requirements</h2>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead>
+                <tr class="border-b border-border">
+                  <th class="text-left py-2 pr-4 text-foreground font-medium">Category</th>
+                  <th class="text-left py-2 text-foreground font-medium">Requirement</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let nfr of nfrRequirements" class="border-b border-border/50">
+                  <td class="py-3 pr-4 text-coral font-medium whitespace-nowrap">{{ nfr.category }}</td>
+                  <td class="py-3 text-muted-foreground">{{ nfr.requirement }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- 7. Implementation Timeline -->
+        <section class="bg-card rounded-xl p-6 card-shadow">
+          <div class="flex items-center gap-3 mb-4">
+            <lucide-icon name="Clock" class="w-5 h-5 text-coral"></lucide-icon>
+            <h2 class="text-xl font-semibold text-foreground">Implementation Timeline</h2>
+          </div>
+          <div class="space-y-4">
+            <div *ngFor="let phase of timeline" class="p-4 bg-secondary/30 rounded-lg border-l-4 border-coral">
+              <div class="flex flex-wrap items-center gap-2 mb-2">
+                <span class="font-medium text-foreground">{{ phase.phase }}</span>
+                <span class="px-2 py-1 bg-coral/20 text-coral rounded text-xs font-medium">{{ phase.duration }}</span>
+              </div>
+              <p class="text-sm text-muted-foreground">{{ phase.activities }}</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 8. Dependencies -->
+        <section class="bg-card rounded-xl p-6 card-shadow">
+          <div class="flex items-center gap-3 mb-4">
+            <lucide-icon name="Link2" class="w-5 h-5 text-coral"></lucide-icon>
+            <h2 class="text-xl font-semibold text-foreground">Dependencies & Assumptions</h2>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead>
+                <tr class="border-b border-border">
+                  <th class="text-left py-2 pr-4 text-foreground font-medium">Dependency</th>
+                  <th class="text-left py-2 pr-4 text-foreground font-medium">Status</th>
+                  <th class="text-left py-2 text-foreground font-medium">Notes</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let dep of dependencies" class="border-b border-border/50">
+                  <td class="py-3 pr-4 text-foreground">{{ dep.dependency }}</td>
+                  <td class="py-3 pr-4">
+                    <span [ngClass]="{
+                      'bg-red-500/20 text-red-400': dep.status === 'Critical',
+                      'bg-amber-500/20 text-amber-400': dep.status === 'Required'
+                    }" class="px-2 py-1 rounded text-xs font-medium">
+                      {{ dep.status }}
+                    </span>
+                  </td>
+                  <td class="py-3 text-muted-foreground text-sm">{{ dep.notes }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </main>
+</div>

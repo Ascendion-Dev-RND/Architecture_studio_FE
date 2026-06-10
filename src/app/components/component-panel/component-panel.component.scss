@@ -1,0 +1,84 @@
+/* ── Insert Panel (sidebar mode) ─────────────────────────── */
+
+.insert-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: transparent;
+}
+
+/* ── Icon item in grid ───────────────────────────────────── */
+
+.insert-icon-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  padding: 4px 2px;
+  border-radius: 8px;
+  transition: all 0.15s ease;
+}
+
+.insert-icon-item:hover {
+  background: #f0f4ff;
+  transform: translateY(-1px);
+}
+
+.insert-icon-box {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  border: 1.5px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.insert-icon-item:hover .insert-icon-box {
+  border-color: #818cf8;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.12);
+}
+
+.insert-icon-box[data-category="shape"] {
+  border-color: #818cf8;
+  background: #eef2ff;
+}
+
+.insert-icon-box[data-category="arrow"] {
+  border-color: #9ca3af;
+  background: #f9fafb;
+}
+
+.insert-icon-box[data-category="aws"] {
+  border-color: #ff9800;
+}
+
+.insert-icon-box[data-category="azure"] {
+  border-color: #2196f3;
+}
+
+.insert-icon-box[data-category="gcp"] {
+  border-color: #4caf50;
+}
+
+.insert-icon-box[data-category="general"] {
+  border-color: #607d8b;
+}
+
+.insert-icon-label {
+  font-size: 10px;
+  margin-top: 4px;
+  text-align: center;
+  color: #6b7280;
+  line-height: 1.2;
+  max-width: 60px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Legacy compat (keep old classes for any existing usage) ─ */
+
+.component-panel { display: none; }

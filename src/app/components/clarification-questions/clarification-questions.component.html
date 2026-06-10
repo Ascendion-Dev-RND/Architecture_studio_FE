@@ -1,0 +1,73 @@
+<div class="clarification-panel" *ngIf="parsedQuestions.length > 0">
+  <div class="panel-header">
+    <h3>🎯 Help us improve your architecture</h3>
+    <p>Answer a few quick questions to enhance your cloud design</p>
+  </div>
+
+  <div class="questions-container">
+    <div class="question-card" *ngFor="let question of parsedQuestions">
+      <div class="question-text">{{ question.question }}</div>
+      
+      <!-- Boolean Question (Yes/No) -->
+      <div class="options-group radio-group" *ngIf="question.type === 'boolean'">
+        <label 
+          *ngFor="let option of question.options" 
+          class="radio-option"
+          [class.selected]="isSelected(question.id, option)">
+          <input 
+            type="radio" 
+            [name]="question.id" 
+            [value]="option"
+            (change)="selectAnswer(question.id, option)">
+          <span class="radio-label">{{ option }}</span>
+        </label>
+      </div>
+
+      <!-- Multiple Choice Question (single select) -->
+      <div class="options-group chip-group" *ngIf="question.type === 'choice'">
+        <button 
+          *ngFor="let option of question.options" 
+          class="chip-option"
+          [class.selected]="isSelected(question.id, option)"
+          (click)="selectAnswer(question.id, option)">
+          {{ option }}
+        </button>
+      </div>
+
+      <!-- Multi-select Question -->
+      <div class="options-group chip-group multiselect" *ngIf="question.type === 'multiselect'">
+        <span class="multiselect-hint">Select multiple</span>
+        <button 
+          *ngFor="let option of question.options" 
+          class="chip-option"
+          [class.selected]="isSelected(question.id, option)"
+          (click)="selectAnswer(question.id, option)">
+          <span class="check-icon" *ngIf="isSelected(question.id, option)">✓ </span>{{ option }}
+        </button>
+      </div>
+
+      <!-- Text Input Question -->
+      <div class="options-group text-group" *ngIf="question.type === 'text'">
+        <input 
+          type="text" 
+          class="text-input"
+          placeholder="Enter your answer..."
+          [value]="answers.get(question.id) || ''"
+          (input)="selectAnswer(question.id, $any($event.target).value)">
+      </div>
+    </div>
+  </div>
+
+  <div class="panel-actions">
+    <button class="btn-skip" (click)="skipQuestions()">
+      Skip for now
+    </button>
+    <button 
+      class="btn-submit" 
+      [disabled]="!hasAnswers"
+      (click)="submitAnswers()">
+      <span class="btn-icon">✓</span>
+      Submit Answers
+    </button>
+  </div>
+</div>

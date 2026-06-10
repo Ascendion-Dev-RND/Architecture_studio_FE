@@ -1,0 +1,25 @@
+/* projects-section component styles */
+/* All styles handled by Tailwind utilities */
+.light-theme .toggle-layout[_ngcontent-ng-c3655377391] {
+  border: 1px solid #f0f0f5;
+  background: linear-gradient(102deg, #f0f0f53d 2.05% 100%);
+  box-shadow: 0 2px 4px #00000014;
+  backdrop-filter: blur(7.5px);
+}
+.toggle-layout {
+  display: flex;
+  width: 280px;
+  height: 60px;
+  padding: 8px;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px #0000000d;
+  backdrop-filter: blur(7.5px);
+  transition: all 0.3s ease;
+  border: 1px solid rgba(155, 155, 155, 0.2);
+  background: linear-gradient(102deg, #f0f0f53d 2.05% 100%);
+}
+.bg{
+  background: var(--Global-colors-Royal-blue-50, rgba(233, 239, 253, 1));
+}

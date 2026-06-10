@@ -1,0 +1,29 @@
+{
+  "id": "azure-reference",
+  "label": "Microsoft Azure — Architecture Reference (vendor-aligned)",
+  "fidelity": "reference",
+  "comment": "Pixel-aligned to Microsoft Azure Architecture Icons + Azure Architecture Center reference imagery. Microsoft brand blue #0078D4, navy text #243A5E, body fills #E6F2FB/#CCE4F5. Sharp rectangular corners (Azure style — no rounded radii). Edit with care.",
+  "cornerStyle": "sharp",
+  "containers": {
+    "CLOUD":              { "fillColor": "none",    "strokeColor": "#0078D4", "strokeWidth": 1.5, "fontColor": "#0078D4", "dashed": 1 },
+    "REGION":             { "fillColor": "#F0F6FB", "strokeColor": "#0078D4", "strokeWidth": 1.5, "fontColor": "#243A5E", "dashed": 1 },
+    "VPC":                { "fillColor": "#E6F2FB", "strokeColor": "#0078D4", "strokeWidth": 2,   "fontColor": "#243A5E" },
+    "VNET":               { "fillColor": "#E6F2FB", "strokeColor": "#0078D4", "strokeWidth": 2,   "fontColor": "#243A5E" },
+    "AZ":                 { "fillColor": "#D9EAF7", "strokeColor": "#005A9E", "strokeWidth": 1.5, "fontColor": "#243A5E" },
+    "AVAILABILITY_ZONE":  { "fillColor": "#D9EAF7", "strokeColor": "#005A9E", "strokeWidth": 1.5, "fontColor": "#243A5E" },
+    "SUBNET":             { "fillColor": "#CCE4F5", "strokeColor": "#005A9E", "strokeWidth": 1.5, "fontColor": "#243A5E" },
+    "CLUSTER":            { "fillColor": "#FFFFFF", "strokeColor": "#005A9E", "strokeWidth": 1.5, "fontColor": "#243A5E", "dashed": 1 },
+    "RESOURCE_GROUP":     { "fillColor": "#F0F6FB", "strokeColor": "#0078D4", "strokeWidth": 1.5, "fontColor": "#243A5E", "dashed": 1 },
+    "SYSTEM_BOUNDARY":    { "fillColor": "none",    "strokeColor": "#243A5E", "strokeWidth": 1.5, "fontColor": "#243A5E", "dashed": 1 },
+    "CONTAINER_BOUNDARY": { "fillColor": "#E6F2FB", "strokeColor": "#0078D4", "strokeWidth": 1.5, "fontColor": "#243A5E" },
+    "LAYER":              { "fillColor": "#F0F6FB", "strokeColor": "#243A5E", "strokeWidth": 1,   "fontColor": "#243A5E" },
+    "TRUST_BOUNDARY":     { "fillColor": "none",    "strokeColor": "#B4262E", "strokeWidth": 2,   "fontColor": "#B4262E", "dashed": 1 },
+    "NETWORK_SEGMENT":    { "fillColor": "#F0F6FB", "strokeColor": "#0078D4", "strokeWidth": 1,   "fontColor": "#243A5E" },
+    "USERS":              { "fillColor": "#F0F6FB", "strokeColor": "#0078D4", "strokeWidth": 1.5, "fontColor": "#243A5E", "dashed": 1 },
+    "EXTERNAL_SYSTEMS":   { "fillColor": "#FFF4CE", "strokeColor": "#A8801C", "strokeWidth": 1.5, "fontColor": "#5C4914", "dashed": 1 },
+    "SECURITY":           { "fillColor": "#FDF2F8", "strokeColor": "#B4262E", "strokeWidth": 1.5, "fontColor": "#B4262E", "dashed": 1 },
+    "CICD":               { "fillColor": "#F0F6FB", "strokeColor": "#0078D4", "strokeWidth": 1.5, "fontColor": "#243A5E", "dashed": 1 },
+    "GENERIC":            { "fillColor": "#F0F6FB", "strokeColor": "#0078D4", "strokeWidth": 1,   "fontColor": "#243A5E" },
+    "DEFAULT":            { "fillColor": "#F0F6FB", "strokeColor": "#0078D4", "strokeWidth": 1,   "fontColor": "#243A5E" }
+  }
+}

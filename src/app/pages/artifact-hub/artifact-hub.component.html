@@ -1,0 +1,245 @@
+<div class="min-h-screen gradient-hero">
+  <app-breadcrumb [items]="breadcrumbItems" />
+
+  <nav class="fixed top-0 left-0 right-0 z-50 bg-transparent">
+    <div class="container mx-auto px-6 py-4 flex items-center justify-between">
+      <a routerLink="/" class="flex items-center gap-2">
+        <span
+          class="text-lg font-medium tracking-wide bg-gradient-to-r from-coral to-coral-light bg-clip-text text-transparent"
+        >
+          Architecture-Studio
+        </span>
+      </a>
+    </div>
+  </nav>
+
+  <main class="pt-32 pb-20 px-6">
+    <div class="container mx-auto text-center">
+      <h1
+        class="mb-4"
+        style="
+          background: linear-gradient(150deg, #0044a3 45.68%, #03bdd4 60.03%);
+          background-clip: text;
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          align-self: stretch;
+          text-align: center;
+          font-family: 'Mulish', sans-serif;
+          font-size: 64px;
+          font-style: normal;
+          font-weight: 500;
+          line-height: 75px;
+        "
+      >
+        Artifact Hub
+      </h1>
+
+      <p
+        class="mb-12 max-w-2xl mx-auto"
+        style="
+          color: #64748b;
+          text-align: center;
+          font-family: 'Mulish', sans-serif;
+          font-size: 24px;
+          font-style: normal;
+          font-weight: 400;
+          line-height: 28px;
+        "
+      >
+        Generate architecture documents from a single prompt with inline files and workspace references
+      </p>
+
+      <div class="glass-card glass-card-shadow rounded-xl p-6 max-w-4xl mx-auto">
+        <input type="file" multiple (change)="handleFileUpload($event)" class="hidden" #fileInput>
+
+        <div
+          class="mb-6 rounded-md flex flex-col gap-3 min-h-[110px] max-h-[320px] focus-within:ring-2 focus-within:ring-primary transition"
+        >
+          <div *ngIf="selectedReference || attachedFiles.length > 0" class="flex flex-wrap gap-2">
+            <div
+              *ngIf="selectedReference"
+              class="inline-flex items-center gap-2 px-3 py-2 rounded-full bg-primary/10 text-primary text-xs border border-primary/20"
+            >
+              <lucide-icon name="at-sign" class="w-3.5 h-3.5"></lucide-icon>
+              <span>{{ selectedReference.name }}</span>
+              <button type="button" (click)="clearReference()" class="inline-flex items-center">
+                <lucide-icon name="x" class="w-3 h-3"></lucide-icon>
+              </button>
+            </div>
+
+            <div
+              *ngFor="let file of attachedFiles; let i = index"
+              class="inline-flex items-center gap-2 px-3 py-2 rounded-full bg-secondary/70 text-xs text-foreground border border-border/60"
+            >
+              <lucide-icon name="file-text" class="w-3.5 h-3.5 text-muted-foreground"></lucide-icon>
+              <span class="max-w-[180px] truncate">{{ file.name }}</span>
+              <span *ngIf="file.status === 'processing'" class="text-muted-foreground">Processing...</span>
+              <button type="button" (click)="removeFile(i)" class="inline-flex items-center">
+                <lucide-icon name="x" class="w-3 h-3 text-muted-foreground"></lucide-icon>
+              </button>
+            </div>
+          </div>
+
+          <textarea
+            [(ngModel)]="prompt"
+            (input)="autoResize($event)"
+            (paste)="onPromptPaste($event)"
+            (dragover)="onPromptDragOver($event)"
+            (drop)="onPromptDrop($event)"
+            placeholder="Ask Studio to create an ARD, HLD, ADR, or OpenAPI spec for your system..."
+            rows="1"
+            class="w-full resize-none text-sm bg-transparent outline-none leading-tight overflow-y-auto min-h-[96px]"
+            style="color: #3b3f46; font-family: 'Inter', sans-serif"
+          ></textarea>
+        </div>
+
+        <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div class="flex flex-wrap items-center gap-3 text-[0.75rem]">
+            <div class="relative artifact-attachment-dropdown">
+              <button
+                type="button"
+                title="Attach files"
+                (click)="toggleAttachmentPanel($event)"
+                [class.text-primary]="attachedFiles.length > 0"
+                class="text-muted-foreground hover:text-foreground transition-colors relative"
+              >
+                <lucide-icon name="paperclip" class="w-5 h-5"></lucide-icon>
+              </button>
+
+              <div
+                *ngIf="showAttachmentPanel"
+                class="absolute top-full left-0 mt-2 w-72 bg-card rounded-lg card-shadow border border-border/50 py-2 z-50"
+              >
+                <button
+                  type="button"
+                  (click)="openFilePicker(fileInput)"
+                  class="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 text-sm"
+                >
+                  <lucide-icon name="upload" class="w-4 h-4"></lucide-icon>
+                  Upload files
+                </button>
+                <div class="px-3 pt-1 text-xs text-muted-foreground text-left">
+                  You can also paste or drop files directly into the prompt box.
+                </div>
+              </div>
+            </div>
+
+            <div class="relative artifact-type-dropdown">
+              <button
+                type="button"
+                (click)="toggleTypeDropdown($event)"
+                class="px-3 py-2 btn-layout bg-transparent text-foreground outline-none focus:ring-2 focus:ring-primary text-left flex items-center justify-between min-w-[240px]"
+              >
+                <span class="flex items-center gap-2 min-w-0">
+                  <lucide-icon [name]="getTypeIcon(selectedTypeId || 'OTHER')" class="w-4 h-4"></lucide-icon>
+                  <span class="truncate">{{ selectedType?.label || 'Select document type' }}</span>
+                </span>
+
+                <lucide-icon
+                  [name]="isTypeDropdownOpen ? 'chevron-up' : 'chevron-down'"
+                  class="w-4 h-4"
+                ></lucide-icon>
+              </button>
+
+              <div
+                *ngIf="isTypeDropdownOpen"
+                class="absolute top-full left-0 mt-2 w-80 bg-card rounded-lg card-shadow border border-border/50 py-2 z-50 max-h-72 overflow-y-auto"
+              >
+                <div *ngIf="isLoadingTypes" class="px-4 py-3 text-sm text-muted-foreground text-left">
+                  Loading document types...
+                </div>
+                <button
+                  type="button"
+                  *ngFor="let type of artifactTypes"
+                  (click)="selectType(type.id)"
+                  class="w-full px-4 py-3 text-left hover:bg-secondary/50 transition-colors flex items-start gap-3"
+                >
+                  <lucide-icon
+                    [name]="getTypeIcon(type.id)"
+                    class="w-5 h-5 text-muted-foreground mt-0.5"
+                  ></lucide-icon>
+                  <div class="flex-1 min-w-0">
+                    <div class="text-foreground font-medium">{{ type.label }}</div>
+                    <div class="text-sm text-muted-foreground">{{ type.description }}</div>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            <div class="relative artifact-reference-dropdown">
+              <button
+                type="button"
+                (click)="toggleReferencePanel($event)"
+                class="px-3 py-2 btn-layout bg-transparent text-foreground outline-none focus:ring-2 focus:ring-primary text-left flex items-center gap-2"
+              >
+                <lucide-icon name="at-sign" class="w-4 h-4"></lucide-icon>
+                <span>{{ selectedReference ? selectedReference.name : '@ Reference' }}</span>
+              </button>
+
+              <div
+                *ngIf="showRefDropdown"
+                class="absolute top-full left-0 mt-2 w-80 bg-card rounded-lg card-shadow border border-border/50 py-3 z-50"
+              >
+                <div class="px-3 pb-2 text-left text-xs text-muted-foreground">
+                  Search an Architecture Workbench or Solution Blueprint to use as context.
+                </div>
+
+                <div class="px-3 pb-2">
+                  <input
+                    [(ngModel)]="searchQuery"
+                    placeholder="Search projects..."
+                    class="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none focus:border-primary"
+                  >
+                </div>
+
+                <div class="max-h-56 overflow-y-auto">
+                  <button
+                    *ngFor="let ref of filteredReferences"
+                    (click)="selectRefOption(ref)"
+                    type="button"
+                    class="w-full text-left px-3 py-2 hover:bg-secondary/50 transition-colors border-b border-border/30 last:border-b-0"
+                  >
+                    <p class="text-sm font-medium text-foreground">{{ ref.name }}</p>
+                    <p class="text-xs text-muted-foreground">{{ ref.type }}</p>
+                  </button>
+                  <div *ngIf="filteredReferences.length === 0" class="px-3 py-3 text-xs text-muted-foreground text-center">
+                    No projects found
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            (click)="generate()"
+            [disabled]="!canGenerate()"
+            class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full font-medium transition-all"
+            [ngClass]="canGenerate() ? 'bg-gradient-to-r from-primary to-accent text-white hover:opacity-90' : 'bg-secondary/50 text-muted-foreground cursor-not-allowed'"
+          >
+            <lucide-icon name="sparkles" class="w-4 h-4"></lucide-icon>
+            Generate document
+          </button>
+        </div>
+      </div>
+
+      <div *ngIf="errorMessage" class="mt-4 max-w-4xl mx-auto text-left">
+        <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {{ errorMessage }}
+        </div>
+      </div>
+
+      <div class="flex flex-wrap justify-center gap-3 mt-8">
+        <button
+          type="button"
+          *ngFor="let suggestion of suggestions"
+          (click)="prompt = suggestion"
+          class="flex items-center gap-2 px-4 py-2 glass-card-chips rounded-full text-sm transition-all hover:card-shadow-hover"
+        >
+          <lucide-icon name="sparkles" class="w-4 h-4 text-primary"></lucide-icon>
+          <span>{{ suggestion }}</span>
+        </button>
+      </div>
+    </div>
+  </main>
+</div>

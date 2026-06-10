@@ -1,0 +1,10 @@
+{
+  "comment": "Registry of available provider palettes. Adding a new provider = drop a JSON file in this directory and add its id here. The DiagramPaletteService loads them at app init; no code change required to ship a new provider style.",
+  "default": "aws",
+  "providers": [
+    { "id": "aws",     "file": "aws.json",     "matches": ["AWS"] },
+    { "id": "azure",   "file": "azure.json",   "matches": ["AZURE"] },
+    { "id": "gcp",     "file": "gcp.json",     "matches": ["GCP"] },
+    { "id": "generic", "file": "generic.json", "matches": ["GENERIC", "ONPREM", "ON_PREM", "HYBRID"] }
+  ]
+}

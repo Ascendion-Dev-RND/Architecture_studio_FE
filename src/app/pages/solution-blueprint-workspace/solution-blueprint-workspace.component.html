@@ -1,0 +1,643 @@
+<div class="min-h-screen gradient-hero">
+  <!-- Breadcrumb Navigation -->
+  <app-breadcrumb [items]="breadcrumbItems" />
+
+  <!-- Navigation -->
+  <nav class="fixed top-0 left-0 right-0 z-50 gradient-lavender bg-background/80 backdrop-blur-md border-0 border-border/50">
+    <div class="container mx-auto px-6 py-4 flex items-center justify-between">
+      <a routerLink="/" class="flex items-center gap-2">
+        <span class="text-lg font-medium tracking-wide bg-gradient-to-r from-coral to-coral-light bg-clip-text text-transparent">
+          Architecture-Studio
+        </span>
+      </a>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="pt-20 h-screen flex flex-col">
+    <div class="container mx-auto max-w-8xl flex-1 flex flex-col px-4 overflow-hidden">
+      <div class="flex-1 flex gap-4 overflow-hidden">
+
+        <!-- ══════════════════════════════════════════════════════════════ -->
+        <!-- LEFT: Chat Panel (Collapsible)                               -->
+        <!-- ══════════════════════════════════════════════════════════════ -->
+        <div
+          class="flex flex-col bg-card rounded-2xl card-shadow overflow-hidden transition-all duration-300"
+          [class.w-96]="!isChatCollapsed"
+          [class.w-16]="isChatCollapsed">
+
+          <!-- Chat Header -->
+          <div class="border-b border-border/50 flex-shrink-0">
+            <div class="flex items-center justify-between p-4" [class.hidden]="isChatCollapsed">
+              <div class="flex items-center gap-2">
+                <lucide-icon name="MessageSquare" class="w-5 h-5 text-primary"></lucide-icon>
+                <h2 class="font-semibold text-foreground">Blueprint Assistant</h2>
+              </div>
+              <button type="button" (click)="toggleChat()"
+                class="p-2 text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-lg transition-colors"
+                title="Collapse Panel">
+                <lucide-icon name="ChevronLeft" class="w-5 h-5"></lucide-icon>
+              </button>
+            </div>
+            <div class="flex flex-col items-center py-4" [class.hidden]="!isChatCollapsed">
+              <button type="button" (click)="toggleChat()"
+                class="p-2 text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-lg transition-colors"
+                title="Expand Chat">
+                <lucide-icon name="ChevronRight" class="w-5 h-5"></lucide-icon>
+              </button>
+            </div>
+          </div>
+
+          <!-- Chat Content (expanded) -->
+          <div *ngIf="!isChatCollapsed" class="flex-1 flex flex-col overflow-hidden">
+            <!-- Messages -->
+            <div #chatScroll class="flex-1 overflow-y-auto p-4 space-y-3">
+              <div *ngFor="let msg of chatMessages"
+                [ngClass]="{
+                  'flex justify-end': msg.role === 'user',
+                  'flex justify-start': msg.role !== 'user'
+                }">
+                <!-- Loading indicator -->
+                <div *ngIf="msg.isLoading" class="flex items-center gap-2 px-4 py-2 bg-secondary rounded-2xl text-sm text-muted-foreground">
+                  <lucide-icon name="Loader2" class="w-4 h-4 animate-spin"></lucide-icon>
+                  Analyzing and updating sections...
+                </div>
+                <!-- Normal message -->
+                <div *ngIf="!msg.isLoading"
+                  [ngClass]="{
+                    'bg-primary text-white': msg.role === 'user',
+                    'bg-secondary text-foreground': msg.role === 'assistant',
+                    'bg-amber-500/10 text-amber-600 border border-amber-500/20': msg.role === 'system'
+                  }"
+                  class="max-w-[85%] px-4 py-2 rounded-2xl text-sm">
+                  {{ msg.content }}
+                  <div *ngIf="msg.deltaNotes" class="mt-1 text-xs opacity-70 italic">
+                    {{ msg.deltaNotes }}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Input Area -->
+            <div class="border-t border-border p-4 flex-shrink-0">
+              <div class="flex gap-2">
+                <input
+                  [(ngModel)]="userInput"
+                  (keyup.enter)="sendMessage()"
+                  type="text"
+                  [disabled]="isChatLoading"
+                  placeholder="Refine a section... e.g. 'Improve security view'"
+                  class="flex-1 px-4 py-2 bg-background border border-border rounded-lg text-foreground text-sm focus:outline-none focus:border-primary transition-colors disabled:opacity-50">
+                <button
+                  (click)="sendMessage()"
+                  [disabled]="!userInput.trim() || isChatLoading"
+                  class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                  <lucide-icon name="Send" class="w-4 h-4"></lucide-icon>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════════════ -->
+        <!-- RIGHT: Dynamic Blueprint Content                              -->
+        <!-- ══════════════════════════════════════════════════════════════ -->
+        <div class="flex-1 flex flex-col bg-card rounded-2xl card-shadow overflow-hidden">
+
+          <!-- Header -->
+          <div class="border-b border-border p-4 flex items-center justify-between flex-shrink-0">
+            <div class="flex items-center gap-3">
+              <lucide-icon name="Layers" class="w-5 h-5 text-primary"></lucide-icon>
+              <h2 class="font-semibold text-foreground">Solution Blueprint</h2>
+              <!-- Mode badge -->
+              <span *ngIf="blueprint"
+                [ngClass]="{ 'bg-green-500/15 text-green-600': mode === 'greenfield', 'bg-amber-500/15 text-amber-600': mode === 'brownfield' }"
+                class="px-2 py-0.5 rounded-full text-xs font-medium">
+                {{ mode }}
+              </span>
+              <!-- Version badge -->
+              <span *ngIf="blueprint" class="px-2 py-0.5 bg-secondary text-muted-foreground rounded-full text-xs">
+                v{{ blueprint.version }}
+              </span>
+            </div>
+            <div class="flex items-center gap-1">
+              <button *ngIf="blueprint" (click)="collapseAll()" title="Collapse All"
+                class="p-2 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors">
+                <lucide-icon name="ChevronsUp" class="w-4 h-4"></lucide-icon>
+              </button>
+              <button *ngIf="blueprint" (click)="expandAll()" title="Expand All"
+                class="p-2 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors">
+                <lucide-icon name="ChevronsDown" class="w-4 h-4"></lucide-icon>
+              </button>
+              <div class="h-5 w-px bg-border mx-1"></div>
+              <button (click)="exportMarkdown()" title="Export Markdown" [disabled]="!blueprint || isExporting"
+                class="p-2 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors disabled:opacity-50">
+                <lucide-icon name="FileDown" class="w-5 h-5"></lucide-icon>
+              </button>
+              <button (click)="regenerateBlueprint()" title="Regenerate Blueprint" [disabled]="isLoading || !prompt"
+                class="p-2 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors disabled:opacity-50">
+                <lucide-icon name="RefreshCw" class="w-5 h-5"></lucide-icon>
+              </button>
+            </div>
+          </div>
+
+          <!-- Body -->
+          <div class="flex-1 overflow-y-auto p-6 space-y-4">
+
+            <!-- ── LOADING STATE (with streaming progress) ─────────────────────────────────────── -->
+            <div *ngIf="isLoading" class="flex flex-col items-center justify-center h-full gap-4">
+              <lucide-icon name="Loader2" class="w-10 h-10 text-primary animate-spin"></lucide-icon>
+              <p class="text-muted-foreground">{{ streamingMessage || 'Generating solution blueprint...' }}</p>
+              <div *ngIf="isStreaming && streamTotal > 0" class="w-64">
+                <div class="flex items-center justify-between text-xs text-muted-foreground mb-1">
+                  <span>Generating sections</span>
+                  <span>{{ streamProgress }} / {{ streamTotal }}</span>
+                </div>
+                <div class="w-full bg-secondary rounded-full h-2">
+                  <div class="bg-primary h-2 rounded-full transition-all duration-300"
+                    [style.width.%]="(streamProgress / streamTotal) * 100"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ── CLARIFICATION PANEL ───────────────────────────────── -->
+            <div *ngIf="showClarifications && clarifyResponse" class="space-y-4">
+              <div class="bg-primary/5 border border-primary/20 rounded-xl p-6">
+                <div class="flex items-center gap-3 mb-4">
+                  <lucide-icon name="HelpCircle" class="w-6 h-6 text-primary"></lucide-icon>
+                  <div>
+                    <h3 class="text-lg font-semibold text-foreground">Clarification Questions</h3>
+                    <p class="text-sm text-muted-foreground">
+                      Answer these to improve blueprint accuracy. Mode detected:
+                      <span class="font-medium" [ngClass]="{ 'text-green-600': mode === 'greenfield', 'text-amber-600': mode === 'brownfield' }">{{ mode }}</span>
+                    </p>
+                  </div>
+                </div>
+
+                <!-- Progress bar -->
+                <div class="mb-6">
+                  <div class="flex items-center justify-between text-xs text-muted-foreground mb-1">
+                    <span>{{ answeredCount }} of {{ clarifyResponse.questions.length }} answered</span>
+                    <span>{{ requiredUnanswered }} required remaining</span>
+                  </div>
+                  <div class="w-full bg-secondary rounded-full h-1.5">
+                    <div class="bg-primary h-1.5 rounded-full transition-all"
+                      [style.width.%]="(answeredCount / clarifyResponse.questions.length) * 100"></div>
+                  </div>
+                </div>
+
+                <!-- Questions -->
+                <div class="space-y-5">
+                  <div *ngFor="let q of clarifyResponse.questions; let i = index"
+                    class="p-4 bg-card rounded-lg border border-border/50">
+                    <div class="flex items-start gap-3 mb-3">
+                      <span class="flex-shrink-0 w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center text-primary text-xs font-bold">{{ i + 1 }}</span>
+                      <div class="flex-1">
+                        <p class="text-sm font-medium text-foreground">{{ q.question }}</p>
+                        <div class="flex items-center gap-2 mt-1">
+                          <span class="text-xs text-muted-foreground bg-secondary px-2 py-0.5 rounded">{{ q.dimension }}</span>
+                          <span *ngIf="q.required" class="text-xs text-red-500">Required</span>
+                        </div>
+                      </div>
+                      <lucide-icon *ngIf="clarificationAnswers[q.id]" name="CheckCircle" class="w-5 h-5 text-green-500 flex-shrink-0"></lucide-icon>
+                    </div>
+                    <!-- Option chips -->
+                    <div class="flex flex-wrap gap-2 mb-2">
+                      <button *ngFor="let opt of q.options"
+                        (click)="answerClarification(q.id, opt)"
+                        [ngClass]="{ 'bg-primary text-white': clarificationAnswers[q.id] === opt, 'bg-secondary text-foreground hover:bg-secondary/80': clarificationAnswers[q.id] !== opt }"
+                        class="px-3 py-1.5 text-xs rounded-full transition-colors">
+                        {{ opt }}
+                      </button>
+                    </div>
+                    <!-- Free text -->
+                    <input *ngIf="q.allowFreeText" type="text"
+                      placeholder="Or type your answer..."
+                      (blur)="setClarificationFreeText(q.id, $event)"
+                      (keyup.enter)="setClarificationFreeText(q.id, $event)"
+                      class="w-full mt-1 px-3 py-1.5 bg-background border border-border rounded-lg text-foreground text-xs focus:outline-none focus:border-primary">
+                  </div>
+                </div>
+
+                <!-- Action buttons -->
+                <div class="flex items-center justify-between mt-6 pt-4 border-t border-border/50">
+                  <button (click)="skipClarifications()"
+                    class="px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                    Skip &amp; Generate
+                  </button>
+                  <button (click)="submitClarifications()"
+                    class="px-6 py-2 bg-primary text-white text-sm rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2">
+                    <lucide-icon name="Sparkles" class="w-4 h-4"></lucide-icon>
+                    Generate Blueprint
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- ── EMPTY STATE ───────────────────────────────────────── -->
+            <div *ngIf="!isLoading && !showClarifications && !blueprint" class="flex flex-col items-center justify-center h-full gap-4 p-8">
+              <lucide-icon name="Layers" class="w-16 h-16 text-muted-foreground/40"></lucide-icon>
+              <div class="text-center max-w-md">
+                <h3 class="text-lg font-semibold text-foreground mb-2">No Blueprint Loaded</h3>
+                <p class="text-sm text-muted-foreground mb-4">
+                  Navigate from the Solution Blueprint entry page with requirements to generate a dynamic blueprint.
+                </p>
+                <button
+                  (click)="router.navigate(['/solution-blueprint'])"
+                  class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors">
+                  Go to Entry Page
+                </button>
+              </div>
+            </div>
+
+            <!-- ── DYNAMIC BLUEPRINT SECTIONS ────────────────────────── -->
+            <ng-container *ngIf="blueprint && !showClarifications && !isLoading">
+              <!-- System title -->
+              <div class="mb-2">
+                <h1 class="text-2xl font-bold text-foreground">{{ blueprint.systemName }}</h1>
+                <p class="text-sm text-muted-foreground">{{ blueprint.domain | titlecase }} &middot; {{ blueprint.sections.length }} sections &middot; Last updated {{ blueprint.updatedAt | date:'short' }}</p>
+              </div>
+
+              <!-- ── ARCHITECTURE DIAGRAMS GALLERY (FLOW 2) ──────────────── -->
+              <section class="bg-card rounded-xl border border-border/50 p-4 mb-2">
+                <div class="flex items-center justify-between mb-3">
+                  <div class="flex items-center gap-2">
+                    <lucide-icon name="Layers" class="w-5 h-5 text-primary"></lucide-icon>
+                    <h2 class="text-base font-semibold text-foreground">Architecture Diagrams</h2>
+                    <span *ngIf="blueprintDiagrams.length" class="px-2 py-0.5 bg-secondary text-muted-foreground rounded-full text-xs">
+                      {{ readyDiagramCount() }}/{{ blueprintDiagrams.length }} ready
+                    </span>
+                  </div>
+                  <button (click)="composeDiagrams()" [disabled]="composing"
+                    class="flex items-center gap-2 px-4 py-2 bg-primary text-white text-sm rounded-lg hover:bg-primary/90 disabled:opacity-50 transition-colors">
+                    <lucide-icon [name]="composing ? 'Loader2' : 'Sparkles'" [class.animate-spin]="composing" class="w-4 h-4"></lucide-icon>
+                    {{ blueprintDiagrams.length ? 'Regenerate Diagrams' : 'Generate Diagrams' }}
+                  </button>
+                </div>
+
+                <p *ngIf="composeStatus" class="text-xs text-muted-foreground mb-3">{{ composeStatus }}</p>
+
+                <!-- Composition clarification gate (before generation) -->
+                <div *ngIf="composeClarifications.length" class="bg-primary/5 border border-primary/20 rounded-lg p-4 mb-3 space-y-3">
+                  <p class="text-sm font-medium text-foreground">A few details before generating:</p>
+                  <div *ngFor="let q of composeClarifications" class="space-y-2">
+                    <p class="text-sm text-muted-foreground">{{ q.question }}</p>
+                    <div class="flex flex-wrap gap-2">
+                      <button *ngFor="let opt of (q.options || [])"
+                        (click)="answerComposeClar(q.id, opt)"
+                        [ngClass]="{ 'bg-primary text-white': composeAnswers[q.id] === opt, 'bg-secondary text-foreground hover:bg-secondary/80': composeAnswers[q.id] !== opt }"
+                        class="px-3 py-1.5 text-xs rounded-full transition-colors">{{ opt }}</button>
+                    </div>
+                    <input *ngIf="!(q.options && q.options.length)" type="text" placeholder="Type your answer…"
+                      (blur)="answerComposeClar(q.id, $any($event.target).value)"
+                      (keyup.enter)="answerComposeClar(q.id, $any($event.target).value)"
+                      class="w-full px-3 py-1.5 bg-background border border-border rounded-lg text-foreground text-xs focus:outline-none focus:border-primary">
+                  </div>
+                  <button (click)="submitComposeClarifications()"
+                    class="px-4 py-2 bg-primary text-white text-sm rounded-lg hover:bg-primary/90 transition-colors">
+                    Generate Diagrams
+                  </button>
+                </div>
+
+                <!-- Composing skeleton -->
+                <div *ngIf="composing" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  <div *ngFor="let i of [1,2,3,4,5]" class="h-40 bg-secondary/30 rounded-lg animate-pulse"></div>
+                </div>
+
+                <!-- Gallery -->
+                <div *ngIf="!composing && blueprintDiagrams.length" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  <div *ngFor="let d of blueprintDiagrams"
+                    class="rounded-lg border border-border/60 overflow-hidden bg-white flex flex-col">
+                    <div class="relative h-40 flex items-center justify-center overflow-hidden bg-secondary/10">
+                      <img *ngIf="d.status === 'ready'" [src]="diagramSvgUrl(d)" [alt]="d.title"
+                        class="max-h-full max-w-full object-contain" loading="lazy" />
+                      <div *ngIf="d.status !== 'ready'" class="flex flex-col items-center gap-2 text-muted-foreground">
+                        <lucide-icon name="Info" class="w-6 h-6 text-amber-500"></lucide-icon>
+                        <span class="text-xs">Not generated</span>
+                      </div>
+                    </div>
+                    <div class="p-3 flex items-center justify-between gap-2 border-t border-border/50">
+                      <div class="min-w-0">
+                        <p class="text-sm font-medium text-foreground truncate">{{ d.title }}</p>
+                        <span [ngClass]="{ 'text-green-600': d.status === 'ready', 'text-amber-600': d.status !== 'ready' }"
+                          class="text-[10px] uppercase font-medium">{{ d.status }}</span>
+                      </div>
+                      <div class="flex items-center gap-1 flex-shrink-0">
+                        <button *ngIf="d.status === 'ready'" (click)="editDiagramInWorkbench(d)" title="Edit in workbench"
+                          class="flex items-center gap-1 px-2 py-1 bg-primary text-white text-xs rounded-lg hover:bg-primary/90 transition-colors">
+                          <lucide-icon name="Edit" class="w-3 h-3"></lucide-icon> Edit
+                        </button>
+                        <button *ngIf="d.status !== 'ready'" (click)="retryDiagram(d)" title="Retry"
+                          class="flex items-center gap-1 px-2 py-1 bg-secondary text-foreground text-xs rounded-lg hover:bg-secondary/80 transition-colors">
+                          <lucide-icon name="RefreshCw" class="w-3 h-3"></lucide-icon> Retry
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Empty -->
+                <div *ngIf="!composing && !blueprintDiagrams.length && !composeClarifications.length"
+                  class="text-sm text-muted-foreground py-6 text-center">
+                  Generate the reference architecture diagram set (cloud deployment, C4 context &amp; container, CI/CD, infrastructure) from this blueprint.
+                </div>
+              </section>
+
+              <!-- Iterate over dynamic sections -->
+              <section *ngFor="let section of blueprint.sections; trackBy: trackSection"
+                class="bg-card rounded-xl border border-border/50 transition-all"
+                [ngClass]="{ 'border-green-500/30': section.status === 'finalized' }">
+
+                <!-- Section header (always visible, clickable to collapse/expand) -->
+                <div class="flex items-center justify-between p-4 cursor-pointer select-none hover:bg-secondary/20 rounded-t-xl transition-colors"
+                  (click)="toggleSection(section)">
+                  <div class="flex items-center gap-3">
+                    <lucide-icon [name]="section.icon" class="w-5 h-5 text-primary"></lucide-icon>
+                    <h2 class="text-base font-semibold text-foreground">{{ section.title }}</h2>
+                    <!-- Status badge -->
+                    <span [ngClass]="{
+                        'bg-green-500/15 text-green-600': section.status === 'finalized',
+                        'bg-amber-500/15 text-amber-600': section.status === 'draft'
+                      }"
+                      class="px-2 py-0.5 rounded-full text-[10px] font-medium uppercase">
+                      {{ section.status }}
+                    </span>
+                  </div>
+                  <div class="flex items-center gap-1">
+                    <!-- Section actions -->
+                    <button (click)="refineSection(section); $event.stopPropagation()" title="Refine via chat"
+                      class="p-1.5 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors">
+                      <lucide-icon name="MessageSquare" class="w-4 h-4"></lucide-icon>
+                    </button>
+                    <button (click)="regenerateSection(section); $event.stopPropagation()" title="Regenerate section"
+                      class="p-1.5 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors">
+                      <lucide-icon name="RefreshCw" class="w-4 h-4"></lucide-icon>
+                    </button>
+                    <button (click)="finalizeSection(section); $event.stopPropagation()"
+                      [title]="section.status === 'finalized' ? 'Mark as draft' : 'Finalize section'"
+                      class="p-1.5 text-muted-foreground hover:text-green-600 hover:bg-green-500/10 rounded-lg transition-colors">
+                      <lucide-icon [name]="section.status === 'finalized' ? 'CheckCircle2' : 'Circle'" class="w-4 h-4"></lucide-icon>
+                    </button>
+                    <!-- Chevron -->
+                    <lucide-icon [name]="section.collapsed ? 'ChevronDown' : 'ChevronUp'" class="w-4 h-4 text-muted-foreground ml-1"></lucide-icon>
+                  </div>
+                </div>
+
+                <!-- Section body (collapsible) -->
+                <div *ngIf="!section.collapsed" class="px-6 pb-5 space-y-4">
+
+                  <!-- ── CONTENT RENDERER ──────────────────────────── -->
+                  <ng-container *ngIf="section.content">
+
+                    <!-- String values: summary, description, text -->
+                    <ng-container *ngFor="let key of objectKeys(section.content)">
+
+                      <!-- Simple string -->
+                      <div *ngIf="!isArray(section.content[key]) && !isObject(section.content[key]) && section.content[key]">
+                        <h4 *ngIf="key !== 'summary' && key !== 'description' && key !== 'text'" class="text-sm font-medium text-foreground mb-1 capitalize">{{ formatKey(key) }}</h4>
+                        <p class="text-sm text-muted-foreground leading-relaxed">{{ section.content[key] }}</p>
+                      </div>
+
+                      <!-- Array of strings (lists) -->
+                      <div *ngIf="isArray(section.content[key]) && section.content[key].length > 0 && !isObject(section.content[key][0])">
+                        <h4 class="text-sm font-medium text-foreground mb-2 capitalize">{{ formatKey(key) }}</h4>
+                        <ul class="space-y-1.5">
+                          <li *ngFor="let item of section.content[key]" class="flex items-start gap-2 text-sm text-muted-foreground">
+                            <span class="text-primary mt-0.5 flex-shrink-0">-</span>
+                            <span>{{ item }}</span>
+                          </li>
+                        </ul>
+                      </div>
+
+                      <!-- Array of objects (tables/cards) -->
+                      <div *ngIf="isArray(section.content[key]) && section.content[key].length > 0 && isObject(section.content[key][0])">
+                        <h4 class="text-sm font-medium text-foreground mb-2 capitalize">{{ formatKey(key) }}</h4>
+
+                        <!-- Render as table if items have consistent keys -->
+                        <div class="overflow-x-auto" *ngIf="objectKeys(section.content[key][0]).length <= 6; else cardView">
+                          <table class="w-full text-sm">
+                            <thead>
+                              <tr class="border-b border-border">
+                                <th *ngFor="let col of objectKeys(section.content[key][0])"
+                                  class="text-left py-2 pr-4 text-foreground font-medium capitalize">{{ formatKey(col) }}</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr *ngFor="let row of section.content[key]" class="border-b border-border/30">
+                                <td *ngFor="let col of objectKeys(row)" class="py-2 pr-4 text-muted-foreground">
+                                  <!-- Color-code status/severity cells -->
+                                  <span *ngIf="col === 'status' || col === 'severity' || col === 'impact'"
+                                    [ngClass]="{
+                                      'bg-red-500/15 text-red-500': row[col] === 'Critical' || row[col] === 'High',
+                                      'bg-amber-500/15 text-amber-500': row[col] === 'Medium' || row[col] === 'Required' || row[col] === 'Modified',
+                                      'bg-green-500/15 text-green-500': row[col] === 'Low' || row[col] === 'open' || row[col] === 'answered'
+                                    }"
+                                    class="px-2 py-0.5 rounded text-xs font-medium">{{ row[col] }}</span>
+                                  <span *ngIf="col === 'method'"
+                                    [ngClass]="{
+                                      'bg-green-500/15 text-green-500': row[col] === 'GET',
+                                      'bg-blue-500/15 text-blue-500': row[col] === 'POST',
+                                      'bg-amber-500/15 text-amber-500': row[col] === 'PUT',
+                                      'bg-red-500/15 text-red-500': row[col] === 'DELETE'
+                                    }"
+                                    class="px-2 py-0.5 rounded text-xs font-medium">{{ row[col] }}</span>
+                                  <span *ngIf="col !== 'status' && col !== 'severity' && col !== 'impact' && col !== 'method'">{{ row[col] }}</span>
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+
+                        <!-- Card view for more complex objects -->
+                        <ng-template #cardView>
+                          <div class="grid sm:grid-cols-2 gap-3">
+                            <div *ngFor="let item of section.content[key]"
+                              class="p-3 bg-secondary/30 rounded-lg border-l-4 border-primary/60">
+                              <div *ngFor="let k of objectKeys(item)">
+                                <span *ngIf="k === objectKeys(item)[0]" class="font-medium text-primary text-sm">{{ item[k] }}</span>
+                                <p *ngIf="k !== objectKeys(item)[0]" class="text-xs text-muted-foreground mt-0.5">
+                                  <span class="font-medium capitalize">{{ formatKey(k) }}:</span> {{ item[k] }}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </ng-template>
+                      </div>
+
+                      <!-- Diagram (Mermaid) -->
+                      <div *ngIf="key === 'diagram' && section.content['diagramType'] === 'mermaid'">
+                        <div class="bg-secondary/20 rounded-xl p-4 border border-border">
+                          <div class="flex items-center justify-between mb-3">
+                            <h4 class="font-medium text-foreground text-sm">{{ section.title }} Diagram</h4>
+                            <button (click)="editInWorkbench(section.id)"
+                              class="flex items-center gap-1 px-2 py-1 bg-primary text-white text-xs rounded-lg hover:bg-primary/90 transition-colors">
+                              <lucide-icon name="Edit" class="w-3 h-3"></lucide-icon>
+                              Edit in Workbench
+                            </button>
+                          </div>
+                          <div class="bg-white rounded-lg border border-border overflow-hidden" style="min-height: 350px;">
+                            <app-mermaid-canvas [diagramData]="section.content[key]"></app-mermaid-canvas>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- ER Diagram -->
+                      <div *ngIf="key === 'erDiagram' && section.content['erDiagramType'] === 'mermaid'">
+                        <div class="bg-secondary/20 rounded-xl p-4 border border-border">
+                          <div class="flex items-center justify-between mb-3">
+                            <h4 class="font-medium text-foreground text-sm">Entity Relationship Diagram</h4>
+                            <button (click)="editInWorkbench('er-diagram')"
+                              class="flex items-center gap-1 px-2 py-1 bg-primary text-white text-xs rounded-lg hover:bg-primary/90 transition-colors">
+                              <lucide-icon name="Edit" class="w-3 h-3"></lucide-icon>
+                              Edit in Workbench
+                            </button>
+                          </div>
+                          <div class="bg-white rounded-lg border border-border overflow-hidden" style="min-height: 350px;">
+                            <app-mermaid-canvas [diagramData]="section.content[key]"></app-mermaid-canvas>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Open Questions (interactive) -->
+                      <div *ngIf="key === 'openQuestions' && isArray(section.content[key])">
+                        <h4 class="text-sm font-medium text-foreground mb-2">Open Questions</h4>
+                        <div *ngFor="let oq of section.content[key]; let qi = index"
+                          class="flex items-center gap-3 p-3 bg-secondary/20 rounded-lg mb-2">
+                          <lucide-icon [name]="oq.status === 'answered' ? 'CheckCircle' : 'CircleDot'"
+                            [ngClass]="{ 'text-green-500': oq.status === 'answered', 'text-amber-500': oq.status !== 'answered' }"
+                            class="w-4 h-4 flex-shrink-0"></lucide-icon>
+                          <span class="text-sm text-muted-foreground flex-1">{{ oq.question }}</span>
+                          <span *ngIf="oq.answer" class="text-xs text-green-600 bg-green-500/10 px-2 py-0.5 rounded">{{ oq.answer }}</span>
+                          <input *ngIf="oq.status !== 'answered'" type="text"
+                            placeholder="Answer..."
+                            (keyup.enter)="answerOpenQuestion(section.id, qi, $event)"
+                            class="w-40 px-2 py-1 bg-background border border-border rounded text-xs text-foreground focus:outline-none focus:border-primary">
+                        </div>
+                      </div>
+
+                    </ng-container>
+                  </ng-container>
+                </div>
+              </section>
+
+              <!-- Footer note -->
+              <p class="text-sm text-muted-foreground p-4 bg-secondary/20 rounded-lg">
+                <lucide-icon name="Info" class="w-4 h-4 inline-block mr-2"></lucide-icon>
+                Use the chat to refine sections: "Improve security view", "Add multi-region DR", "Change DB to DynamoDB"
+              </p>
+            </ng-container>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ══════════════════════════════════════════════════════════════ -->
+  <!-- CLARIFICATION POPUP MODAL (like architecture workbench)       -->
+  <!-- ══════════════════════════════════════════════════════════════ -->
+  <div *ngIf="showClarificationModal && clarifyResponse" 
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+    <div class="bg-card rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col m-4">
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between p-5 border-b border-border">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+            <lucide-icon name="HelpCircle" class="w-5 h-5 text-primary"></lucide-icon>
+          </div>
+          <div>
+            <h2 class="text-lg font-semibold text-foreground">Clarification Questions</h2>
+            <p class="text-sm text-muted-foreground">
+              Help us understand your requirements better
+              <span class="ml-2 px-2 py-0.5 rounded-full text-xs font-medium"
+                [ngClass]="{ 'bg-green-500/15 text-green-600': mode === 'greenfield', 'bg-amber-500/15 text-amber-600': mode === 'brownfield' }">
+                {{ mode }}
+              </span>
+            </p>
+          </div>
+        </div>
+        <button (click)="closeClarificationModal()" 
+          class="p-2 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors">
+          <lucide-icon name="X" class="w-5 h-5"></lucide-icon>
+        </button>
+      </div>
+
+      <!-- Modal Body (scrollable) -->
+      <div class="flex-1 overflow-y-auto p-5">
+        <!-- Progress bar -->
+        <div class="mb-6">
+          <div class="flex items-center justify-between text-xs text-muted-foreground mb-2">
+            <span>{{ answeredCount }} of {{ clarifyResponse.questions.length }} answered</span>
+            <span *ngIf="requiredUnanswered > 0" class="text-amber-500">{{ requiredUnanswered }} required remaining</span>
+            <span *ngIf="requiredUnanswered === 0" class="text-green-500">All required answered</span>
+          </div>
+          <div class="w-full bg-secondary rounded-full h-2">
+            <div class="bg-primary h-2 rounded-full transition-all duration-300"
+              [style.width.%]="(answeredCount / clarifyResponse.questions.length) * 100"></div>
+          </div>
+        </div>
+
+        <!-- Questions List -->
+        <div class="space-y-4">
+          <div *ngFor="let q of clarifyResponse.questions; let i = index"
+            class="p-4 bg-secondary/30 rounded-xl border border-border/50 hover:border-primary/30 transition-colors">
+            <div class="flex items-start gap-3 mb-3">
+              <span class="flex-shrink-0 w-7 h-7 bg-primary/10 rounded-full flex items-center justify-center text-primary text-sm font-bold">
+                {{ i + 1 }}
+              </span>
+              <div class="flex-1">
+                <p class="text-sm font-medium text-foreground">{{ q.question }}</p>
+                <div class="flex items-center gap-2 mt-1">
+                  <span class="text-xs text-muted-foreground bg-secondary px-2 py-0.5 rounded">{{ q.dimension }}</span>
+                  <span *ngIf="q.required" class="text-xs text-red-500 font-medium">Required</span>
+                </div>
+              </div>
+              <lucide-icon *ngIf="clarificationAnswers[q.id]" name="CheckCircle2" class="w-5 h-5 text-green-500 flex-shrink-0"></lucide-icon>
+            </div>
+            
+            <!-- Option chips -->
+            <div class="flex flex-wrap gap-2 mb-2 ml-10">
+              <button *ngFor="let opt of q.options"
+                (click)="answerClarification(q.id, opt)"
+                [ngClass]="{ 
+                  'bg-primary text-white shadow-sm': clarificationAnswers[q.id] === opt, 
+                  'bg-card text-foreground hover:bg-secondary border border-border': clarificationAnswers[q.id] !== opt 
+                }"
+                class="px-3 py-1.5 text-xs rounded-full transition-all">
+                {{ opt }}
+              </button>
+            </div>
+            
+            <!-- Free text input -->
+            <div *ngIf="q.allowFreeText" class="ml-10">
+              <input type="text"
+                placeholder="Or type your own answer..."
+                [value]="clarificationAnswers[q.id] && !q.options.includes(clarificationAnswers[q.id]) ? clarificationAnswers[q.id] : ''"
+                (blur)="setClarificationFreeText(q.id, $event)"
+                (keyup.enter)="setClarificationFreeText(q.id, $event)"
+                class="w-full mt-2 px-3 py-2 bg-background border border-border rounded-lg text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="flex items-center justify-between p-5 border-t border-border bg-secondary/20">
+        <button (click)="skipClarifications()"
+          class="px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors">
+          Skip & Generate Anyway
+        </button>
+        <div class="flex items-center gap-3">
+          <span class="text-xs text-muted-foreground">
+            {{ sufficiencyPercent }}% confident
+          </span>
+          <button (click)="submitClarifications()"
+            class="px-6 py-2.5 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2 shadow-sm">
+            <lucide-icon name="Sparkles" class="w-4 h-4"></lucide-icon>
+            Generate Blueprint
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

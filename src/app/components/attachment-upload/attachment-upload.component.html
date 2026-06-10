@@ -1,0 +1,58 @@
+<div class="attachment-upload"
+     [class.drag-over]="isDragOver"
+     [class.pasting]="isPasting"
+     (click)="onClick()"
+     (keydown)="onKeydown($event)"
+     tabindex="0"
+     role="button"
+     aria-label="Upload attachments">
+  
+  <!-- Hidden file input -->
+  <input #fileInput type="file" 
+         multiple 
+         class="hidden" 
+         (change)="onFileSelected($event)"
+         accept="image/*,.pdf,.doc,.docx,.txt,.md,.zip,.rar">
+
+  <!-- Upload Icon -->
+  <div class="upload-icon">
+    <lucide-icon [name]="getUploadIcon()" 
+                    [ngClass]="{'animate-bounce': isDragOver || isPasting}"
+                    class="w-8 h-8 text-gray-400" />
+  </div>
+
+  <!-- Upload Text -->
+  <div class="upload-text">
+    <p class="text-sm font-medium text-gray-700">
+      {{ getUploadText() }}
+    </p>
+    <p class="text-xs text-gray-500 mt-1">
+      or press Ctrl+V to paste
+    </p>
+  </div>
+
+  <!-- Supported Formats -->
+  <div class="supported-formats">
+    <div class="format-badge" *ngFor="let format of getSupportedFormats()">
+      {{ format }}
+    </div>
+  </div>
+
+  <!-- Drag Overlay -->
+  <div *ngIf="isDragOver" class="drag-overlay">
+    <div class="drag-overlay-content">
+      <lucide-icon name="upload" class="w-12 h-12 text-blue-500 mb-4" />
+      <p class="text-lg font-medium text-blue-700">Drop files here</p>
+      <p class="text-sm text-blue-600">Release to upload</p>
+    </div>
+  </div>
+
+  <!-- Paste Overlay -->
+  <div *ngIf="isPasting" class="paste-overlay">
+    <div class="paste-overlay-content">
+      <lucide-icon name="file-text" class="w-12 h-12 text-green-500 mb-4 animate-pulse" />
+      <p class="text-lg font-medium text-green-700">Pasting files...</p>
+      <p class="text-sm text-green-600">Processing clipboard</p>
+    </div>
+  </div>
+</div>

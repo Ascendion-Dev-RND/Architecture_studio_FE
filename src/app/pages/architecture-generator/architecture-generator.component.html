@@ -1,0 +1,691 @@
+<app-file-attachment
+  #fileAttachment
+  class="hidden"
+  [multiple]="true"
+  [showDropZone]="false"
+  [context]="'all'"
+  [maxFiles]="5"
+  (filesChanged)="onFilesChanged($event)"
+  (contextBuilt)="onContextBuilt($event)"
+></app-file-attachment>
+
+<div class="min-h-screen gradient-hero">
+  <!-- Breadcrumb Navigation -->
+  <app-breadcrumb [items]="breadcrumbItems" />
+
+  <!-- Fixed Navigation Header -->
+  <nav class="fixed top-0 left-0 right-0 z-50 bg-transparent">
+    <div class="container mx-auto px-6 py-4 flex items-center justify-between">
+      <a routerLink="/" class="flex items-center gap-2">
+        <span
+          class="text-lg font-medium tracking-wide bg-gradient-to-r from-coral to-coral-light bg-clip-text text-transparent"
+        >
+          Architecture-Studio
+        </span>
+      </a>
+    </div>
+  </nav>
+
+  <!-- Main Content Area -->
+  <main class="pt-32 pb-20 px-6">
+    <div class="container mx-auto text-center">
+      <!-- Page Title with gradient effect -->
+      <h1
+        class="mb-4"
+        style="
+          background: linear-gradient(150deg, #0044a3 45.68%, #03bdd4 60.03%);
+          background-clip: text;
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          align-self: stretch;
+          text-align: center;
+          font-family: &quot;Mulish&quot;, sans-serif;
+          font-size: 64px;
+          font-style: normal;
+          font-weight: 500;
+          line-height: 75px;
+        "
+      >
+        <span>Architecture </span><span>Workbench</span>
+      </h1>
+
+      <!-- Subtitle/Description -->
+      <p
+        class="mb-12 max-w-2xl mx-auto"
+        style="
+          color: #64748b;
+          text-align: center;
+          font-family: &quot;Mulish&quot;, sans-serif;
+          font-size: 24px;
+          font-style: normal;
+          font-weight: 400;
+          line-height: 28px;
+        "
+      >
+        From understanding your product to the roadmap
+      </p>
+
+      <!-- Input Card -->
+      <div
+        class="glass-card glass-card-shadow rounded-xl p-6 max-w-4xl mx-auto"
+      >
+        <!-- Text Input -->
+        <div
+          class="mb-6 rounded-md flex flex-col gap-2 min-h-[90px] max-h-[160px] transition"
+        >
+          <!-- 📎 ATTACHMENTS INSIDE -->
+          <div
+            *ngIf="uploadedFiles.length > 0"
+            class="flex gap-2 overflow-visible"
+          >
+            <div
+              *ngFor="let file of uploadedFiles; let i = index"
+              class="relative w-16 h-16 rounded-md border bg-[#F0F1F2] flex items-center justify-center flex-shrink-0"
+              [title]="file.name"
+            >
+              <!-- Preview -->
+              <ng-container *ngIf="file.preview; else fileIcon">
+                <img [src]="file.preview" class="w-full h-full object-cover" />
+              </ng-container>
+
+              <!-- Icon fallback -->
+              <ng-template #fileIcon>
+                <lucide-icon
+                  name="FileText"
+                  class="w-4 h-4 text-gray-500"
+                ></lucide-icon>
+              </ng-template>
+
+              <!-- ❌ REMOVE BUTTON -->
+              <button
+                type="button"
+                (click)="removeFile(i)"
+                class="absolute top-0 right-0 translate-x-1/4 -translate-y-1/4 w-4 h-4 bg-black/70 text-white rounded-full flex items-center justify-center text-[10px] hover:bg-gray-500"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+
+          <!-- ✍️ TEXTAREA -->
+          <textarea
+            [(ngModel)]="input"
+            (keydown.enter)="handleSend($event)"
+            (input)="autoResize($event)"
+            placeholder="Ask Studio to generate a microservices architecture..."
+            rows="1"
+            class="w-full resize-none text-sm bg-transparent outline-none leading-tight overflow-y-auto"
+            style="color: #3b3f46; font-family: &quot;Inter&quot;, sans-serif"
+          ></textarea>
+        </div>
+
+        <!-- Uploaded Files Preview (when panel is closed) -->
+
+        <!-- Action Bar: Attachment, Workspace Selector, Wand, Send -->
+        <div class="flex items-center justify-between">
+          <!-- Left side buttons -->
+          <div class="flex items-center gap-3 text-[0.75rem]">
+            <!-- Attachment Button + Dropdown Wrapper -->
+            <div class="relative">
+              <button
+                type="button"
+                title="Add files and more"
+                (click)="toggleAttachmentPanel()"
+                [class.text-primary]="uploadedFiles.length > 0"
+                class="text-muted-foreground hover:text-foreground transition-colors relative"
+              >
+                <img
+                  src="/assets/icons/plus.svg"
+                  alt="attach Icon"
+                  class="w-6 h-6 cursor-pointer ml-auto"
+                />
+
+                <!-- <span
+                  *ngIf="uploadedFiles.length > 0"
+                  class="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full text-[10px] flex items-center justify-center text-white"
+                >
+                  {{ uploadedFiles.length }}
+                </span> -->
+              </button>
+
+              <!-- 🔥 DROPDOWN OVERLAY -->
+              <div
+                *ngIf="showAttachmentPanel"
+                class="absolute top-full mt-2 w-72 bg-card rounded-lg card-shadow border border-border/50 py-2 z-50 max-h-64 overflow-y-auto no-scrollbar"
+              >
+                <!-- <div class="px-3 py-2 text-xs text-gray-400">
+                  Add to your prompt
+                </div> -->
+
+                <!-- Upload -->
+                <button
+                  (click)="openFilePicker()"
+                  class="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100"
+                >
+                  <lucide-icon name="FileUp" class="w-4 h-4"></lucide-icon>
+                  Upload files
+                </button>
+              </div>
+            </div>
+
+            <!-- Diagram Type Selector Dropdown -->
+            <div class="relative diagram-type-dropdown">
+              <button
+                type="button"
+                (click)="toggleDropdown($event)"
+                class="px-3 py-2 btn-layout bg-transparent text-foreground outline-none text-left flex items-center justify-between"
+              >
+                <span class="flex items-center gap-2">
+                  <!-- <lucide-icon
+                    [name]="selectedDiagramType.icon"
+                    class="w-4 h-4"
+                  ></lucide-icon> -->
+                  {{ selectedDiagramType.label }}
+                </span>
+
+                <lucide-icon
+                  [name]="isDropdownOpen ? 'ChevronUp' : 'ChevronDown'"
+                  class="w-4 h-4"
+                >
+                </lucide-icon>
+              </button>
+
+              <!-- Dropdown Menu -->
+              <div
+                *ngIf="isDropdownOpen"
+                class="absolute top-full mt-2 w-72 bg-card rounded-lg card-shadow border border-border/50 py-2 z-50 max-h-64 overflow-y-auto no-scrollbar"
+              >
+                <button
+                  type="button"
+                  *ngFor="let type of diagramTypes"
+                  (click)="selectDiagramType(type)"
+                  class="w-full px-4 py-3 text-left hover:bg-secondary/50 transition-colors flex items-start gap-3"
+                >
+                  <lucide-icon
+                    [name]="type.icon"
+                    class="w-5 h-5 text-muted-foreground mt-0.5"
+                  ></lucide-icon>
+                  <div class="flex-1">
+                    <div class="text-foreground font-medium">
+                      {{ type.label }}
+                    </div>
+                    <div class="text-sm text-muted-foreground">
+                      {{ type.description }}
+                    </div>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            <div *ngIf="shouldShowProviderDropdown" class="relative diagram-type-dropdown">
+              <button
+                type="button"
+                (click)="togglePresetDropdown($event)"
+                class="px-3 py-2 btn-layout bg-transparent text-foreground outline-none text-left flex items-center justify-start"
+              >
+                <span class="flex items-center gap-2">
+                  {{ selectedPresetLabel }}
+                </span>
+
+                <lucide-icon
+                  [name]="isPresetDropdownOpen ? 'ChevronUp' : 'ChevronDown'"
+                  class="w-4 h-4"
+                >
+                </lucide-icon>
+              </button>
+
+              <div
+                *ngIf="isPresetDropdownOpen"
+                class="absolute top-full mt-2 w-72 bg-card rounded-lg card-shadow border border-border/50 py-2 z-50 max-h-64 overflow-y-auto no-scrollbar"
+              >
+                <button
+                  type="button"
+                  *ngFor="let preset of selectedDiagramType.presets"
+                  (click)="selectPreset(preset)"
+                  class="w-full px-4 py-3 text-left hover:bg-secondary/50 transition-colors flex items-start gap-3"
+                >
+                  <lucide-icon
+                    [name]="preset.icon"
+                    class="w-5 h-5 text-muted-foreground mt-0.5"
+                  ></lucide-icon>
+                  <div class="flex-1">
+                    <div class="text-foreground font-medium">
+                      {{ preset.label }}
+                    </div>
+                  </div>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="providerValidationMessage" class="mt-3 text-sm text-red-500">
+            {{ providerValidationMessage }}
+          </div>
+
+          <!-- Right side buttons: Wand + Send -->
+          <div class="flex items-center gap-4">
+            <!-- Magic Wand Button -->
+            <button
+              type="button"
+              (click)="handleEnhance()"
+              title="Enhance promt"
+              class="text-muted-foreground hover:text-amber-500 transition-colors cursor-pointer"
+            >
+              <img
+                src="/assets/icons/wand.svg"
+                alt="wand Icon"
+                class="w-6 h-6 cursor-pointer ml-auto"
+              />
+            </button>
+
+            <!-- Send Button -->
+            <button
+              type="button"
+              title="Generate diagram"
+              (click)="handleSend($event)"
+              class="text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+            >
+              <img
+                src="/assets/icons/send-icon.svg"
+                alt="Send Icon"
+                class="w-6 h-6 cursor-pointer ml-auto"
+              />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Suggestion Chips -->
+      <div class="flex flex-wrap justify-center gap-3 mt-8">
+        <button
+          type="button"
+          *ngFor="let suggestion of suggestions"
+          (click)="input = suggestion"
+          class="flex items-center gap-2 px-4 py-2 glass-card-chips rounded-full text-sm transition-all hover:card-shadow-hover"
+          style="color: #616874; font-family: &quot;Inter&quot;, sans-serif"
+        >
+          <img
+            src="/assets/icons/sparkle.png"
+            alt="sparkle Icon"
+            class="w-6 h-6 cursor-pointer ml-auto"
+          />
+          {{ suggestion }}
+        </button>
+      </div>
+
+      <!-- Projects Section -->
+      <div class="mt-16 mx-auto">
+        <!-- Container with exact glassmorphism specs -->
+        <div
+          style="
+            display: flex;
+            padding: 24px;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 24px;
+            align-self: stretch;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.6);
+            box-shadow: 0 2px 4px 0 #d1d3d8;
+            backdrop-filter: blur(10px);
+          "
+        >
+          <!-- Tabs -->
+          <div
+            class="flex items-center gap-1 p-1 rounded-full w-fit"
+            style="background: rgba(226, 232, 240, 0.6)"
+          >
+            <button
+              type="button"
+              (click)="activeTab = 'recent'"
+              [class.bg-white]="activeTab === 'recent'"
+              [class.shadow-sm]="activeTab === 'recent'"
+              class="px-6 py-2 rounded-full text-sm font-medium transition-all"
+              [style.color]="activeTab === 'recent' ? '#1D4ED8' : '#616874'"
+              style="font-family: &quot;Inter&quot;, sans-serif"
+            >
+              <lucide-icon
+                name="Clock"
+                class="w-4 h-4 inline-block mr-2"
+              ></lucide-icon>
+              Recent
+            </button>
+            <button
+              type="button"
+              (click)="activeTab = 'all'"
+              [class.bg-white]="activeTab === 'all'"
+              [class.shadow-sm]="activeTab === 'all'"
+              class="px-6 py-2 rounded-full text-sm font-medium transition-all"
+              [style.color]="activeTab === 'all' ? '#1D4ED8' : '#616874'"
+              style="font-family: &quot;Inter&quot;, sans-serif"
+            >
+              <lucide-icon
+                name="Grid2X2"
+                class="w-4 h-4 inline-block mr-2"
+              ></lucide-icon>
+              All projects
+            </button>
+          </div>
+
+          <!-- Project Cards Grid -->
+          <div
+            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full"
+          >
+            <div
+              *ngFor="let project of getFilteredProjects()"
+              style="
+                display: flex;
+                padding: 12px;
+                flex-direction: column;
+                align-items: center;
+                gap: 0px;
+                flex: 1 0 0;
+                border-radius: 12px;
+                border: 2px solid #fff;
+                background: #fdfdfd;
+                cursor: pointer;
+              "
+              class="hover:shadow-md transition-all"
+            >
+              <!-- Icon -->
+              <!-- <div class="w-12 h-12 flex items-center justify-center" style="background: linear-gradient(135deg, #0044A3 0%, #03BDD4 100%); border-radius: 8px;">
+                <lucide-icon name="FileText" class="w-6 h-6" style="color: white;"></lucide-icon>
+              </div> -->
+
+              <!-- Project Header -->
+
+              <!-- Project Meta header -->
+              <div
+                class="flex items-center text-xs w-full mb-4"
+                style="color: #616874"
+              >
+                <span
+                  *ngIf="project.isNew"
+                  class="px-2 py-1 text-xs font-medium rounded"
+                  style="background: #e0f2fe; color: #0369a1"
+                >
+                  New
+                </span>
+
+                <lucide-icon
+                  name="MoreVertical"
+                  class="w-6 h-6 cursor-pointer ml-auto"
+                  style="color: #616874"
+                >
+                </lucide-icon>
+              </div>
+
+              <div class="mb-3 w-full">
+                <div class="flex items-start justify-between mb-1">
+                  <h3
+                    class="text-lg font-semibold flex-1 text-start"
+                    style="
+                      color: #3b3f46;
+                      font-family: &quot;Mulish&quot;, sans-serif;
+                    "
+                  >
+                    {{ project.title }}
+                  </h3>
+                  <!-- <span *ngIf="project.isNew" class="px-2 py-1 text-xs font-medium rounded" style="background: #E0F2FE; color: #0369A1;">New</span> -->
+                </div>
+                <p
+                  class="text-sm line-clamp-2 text-start"
+                  style="
+                    color: #616874;
+                    font-family: &quot;Inter&quot;, sans-serif;
+                  "
+                >
+                  {{ project.description }}
+                </p>
+              </div>
+
+              <!-- Project Meta -->
+              <div
+                class="flex items-center justify-between text-xs w-full"
+                style="color: #616874"
+              >
+                <span style="font-family: &quot;Inter&quot;, sans-serif"
+                  >By {{ project.author }}</span
+                >
+                <span style="font-family: &quot;Inter&quot;, sans-serif">{{
+                  project.timestamp
+                }}</span>
+              </div>
+            </div>
+
+            <!-- New Project Card -->
+            <button
+              type="button"
+              style="
+                display: flex;
+                padding: 12px;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 24px;
+                flex: 1 0 0;
+                border-radius: 12px;
+                border: 2px dashed #e2e8f0;
+                background: #fdfdfd;
+                min-height: 200px;
+                cursor: pointer;
+              "
+              class="hover:border-slate-300 hover:shadow-md transition-all"
+            >
+              <lucide-icon
+                name="Plus"
+                class="w-8 h-8"
+                style="color: #616874"
+              ></lucide-icon>
+              <span
+                class="text-sm font-medium"
+                style="
+                  color: #616874;
+                  font-family: &quot;Inter&quot;, sans-serif;
+                "
+                >New</span
+              >
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Information Section -->
+      <div class="mt-12 text-left max-w-5xl mx-auto" style="display: none">
+        <!-- Features Grid -->
+        <div class="grid md:grid-cols-3 gap-6 mb-16">
+          <div class="bg-card rounded-xl p-6 card-shadow">
+            <div
+              class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4"
+            >
+              <lucide-icon
+                name="Sparkles"
+                class="w-6 h-6 text-primary"
+              ></lucide-icon>
+            </div>
+            <h3 class="text-xl font-semibold mb-3 text-foreground">
+              AI-Powered Generation
+            </h3>
+            <p class="text-muted-foreground">
+              Transform natural language requirements into production-ready
+              architecture diagrams using advanced AI models.
+            </p>
+          </div>
+
+          <div class="bg-card rounded-xl p-6 card-shadow">
+            <div
+              class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4"
+            >
+              <lucide-icon
+                name="Layout"
+                class="w-6 h-6 text-primary"
+              ></lucide-icon>
+            </div>
+            <h3 class="text-xl font-semibold mb-3 text-foreground">
+              Multiple Diagram Types
+            </h3>
+            <p class="text-muted-foreground">
+              Support for sequence, ER, cloud architecture, flowcharts, BPMN,
+              microservices, and more.
+            </p>
+          </div>
+
+          <div class="bg-card rounded-xl p-6 card-shadow">
+            <div
+              class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4"
+            >
+              <lucide-icon
+                name="MessageSquare"
+                class="w-6 h-6 text-primary"
+              ></lucide-icon>
+            </div>
+            <h3 class="text-xl font-semibold mb-3 text-foreground">
+              Interactive Workspace
+            </h3>
+            <p class="text-muted-foreground">
+              Collaborate with AI through chat interface while visualizing and
+              editing your architecture in real-time.
+            </p>
+          </div>
+        </div>
+
+        <!-- How It Works -->
+        <div class="bg-card rounded-xl p-8 card-shadow mb-16">
+          <h2
+            class="text-2xl font-bold mb-6 text-foreground flex items-center gap-3"
+          >
+            <lucide-icon
+              name="HelpCircle"
+              class="w-6 h-6 text-primary"
+            ></lucide-icon>
+            How It Works
+          </h2>
+          <div class="space-y-4">
+            <div class="flex gap-4">
+              <div
+                class="flex-shrink-0 w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center text-primary font-semibold"
+              >
+                1
+              </div>
+              <div>
+                <h4 class="font-semibold text-foreground mb-1">
+                  Describe Your Requirements
+                </h4>
+                <p class="text-muted-foreground">
+                  Enter your architecture requirements in natural language or
+                  use our quick suggestions.
+                </p>
+              </div>
+            </div>
+            <div class="flex gap-4">
+              <div
+                class="flex-shrink-0 w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center text-primary font-semibold"
+              >
+                2
+              </div>
+              <div>
+                <h4 class="font-semibold text-foreground mb-1">
+                  Select Diagram Type
+                </h4>
+                <p class="text-muted-foreground">
+                  Choose the appropriate diagram type or let AI auto-detect the
+                  best fit for your needs.
+                </p>
+              </div>
+            </div>
+            <div class="flex gap-4">
+              <div
+                class="flex-shrink-0 w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center text-primary font-semibold"
+              >
+                3
+              </div>
+              <div>
+                <h4 class="font-semibold text-foreground mb-1">
+                  Generate & Refine
+                </h4>
+                <p class="text-muted-foreground">
+                  AI generates your architecture diagram. Use the interactive
+                  workspace to chat, iterate, and perfect your design.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Use Cases -->
+        <div class="bg-card rounded-xl p-8 card-shadow">
+          <h2
+            class="text-2xl font-bold mb-6 text-foreground flex items-center gap-3"
+          >
+            <lucide-icon
+              name="Lightbulb"
+              class="w-6 h-6 text-primary"
+            ></lucide-icon>
+            Common Use Cases
+          </h2>
+          <div class="grid md:grid-cols-2 gap-4">
+            <div class="flex items-start gap-3">
+              <lucide-icon
+                name="Check"
+                class="w-5 h-5 text-primary mt-1 flex-shrink-0"
+              ></lucide-icon>
+              <div>
+                <h4 class="font-semibold text-foreground">
+                  Microservices Design
+                </h4>
+                <p class="text-sm text-muted-foreground">
+                  Design scalable microservices architectures with service
+                  boundaries and communication patterns.
+                </p>
+              </div>
+            </div>
+            <div class="flex items-start gap-3">
+              <lucide-icon
+                name="Check"
+                class="w-5 h-5 text-primary mt-1 flex-shrink-0"
+              ></lucide-icon>
+              <div>
+                <h4 class="font-semibold text-foreground">
+                  Cloud Infrastructure
+                </h4>
+                <p class="text-sm text-muted-foreground">
+                  Visualize AWS, Azure, or GCP infrastructure with proper
+                  service integrations.
+                </p>
+              </div>
+            </div>
+            <div class="flex items-start gap-3">
+              <lucide-icon
+                name="Check"
+                class="w-5 h-5 text-primary mt-1 flex-shrink-0"
+              ></lucide-icon>
+              <div>
+                <h4 class="font-semibold text-foreground">
+                  Data Pipeline Architecture
+                </h4>
+                <p class="text-sm text-muted-foreground">
+                  Create ETL/ELT pipelines and data flow diagrams for analytics
+                  platforms.
+                </p>
+              </div>
+            </div>
+            <div class="flex items-start gap-3">
+              <lucide-icon
+                name="Check"
+                class="w-5 h-5 text-primary mt-1 flex-shrink-0"
+              ></lucide-icon>
+              <div>
+                <h4 class="font-semibold text-foreground">API Design</h4>
+                <p class="text-sm text-muted-foreground">
+                  Document API interactions and system integrations with
+                  sequence diagrams.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>

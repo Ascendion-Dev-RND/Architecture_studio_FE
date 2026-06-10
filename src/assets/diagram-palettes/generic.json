@@ -1,0 +1,29 @@
+{
+  "id": "generic-reference",
+  "label": "C4 / Generic — Reference (C4-PlantUML aligned)",
+  "fidelity": "reference",
+  "comment": "Reference treatment for C4 + provider-neutral diagrams. Anchored to the C4 model conventions (purple #534AB7 for people / channels, green #0F6E56 for SOI / enterprise, orange #993C1D for externals) matching the Anthropic / Simon Brown C4 SVG reference. Rounded corners for readability. Used as the FALLBACK palette when ir.provider doesn't resolve to AWS / Azure / GCP.",
+  "cornerStyle": "sharp",
+  "containers": {
+    "CLOUD":              { "fillColor": "none",    "strokeColor": "#475569", "strokeWidth": 1.5, "fontColor": "#0F172A", "dashed": 1 },
+    "REGION":             { "fillColor": "#F8FAFC", "strokeColor": "#475569", "strokeWidth": 1.5, "fontColor": "#0F172A", "dashed": 1 },
+    "VPC":                { "fillColor": "#F1F5F9", "strokeColor": "#475569", "strokeWidth": 1.5, "fontColor": "#0F172A" },
+    "VNET":               { "fillColor": "#F1F5F9", "strokeColor": "#475569", "strokeWidth": 1.5, "fontColor": "#0F172A" },
+    "AZ":                 { "fillColor": "#F8FAFC", "strokeColor": "#94A3B8", "strokeWidth": 1.2, "fontColor": "#475569", "dashed": 1 },
+    "AVAILABILITY_ZONE":  { "fillColor": "#F8FAFC", "strokeColor": "#94A3B8", "strokeWidth": 1.2, "fontColor": "#475569", "dashed": 1 },
+    "SUBNET":             { "fillColor": "#F1F5F9", "strokeColor": "#94A3B8", "strokeWidth": 1.2, "fontColor": "#475569" },
+    "CLUSTER":            { "fillColor": "#FFFFFF", "strokeColor": "#475569", "strokeWidth": 1.5, "fontColor": "#0F172A", "dashed": 1 },
+    "RESOURCE_GROUP":     { "fillColor": "#F1F5F9", "strokeColor": "#475569", "strokeWidth": 1.5, "fontColor": "#0F172A" },
+    "SYSTEM_BOUNDARY":    { "fillColor": "none",    "strokeColor": "#475569", "strokeWidth": 1.5, "fontColor": "#0F172A", "dashed": 1 },
+    "CONTAINER_BOUNDARY": { "fillColor": "#E1F5EE", "strokeColor": "#0F6E56", "strokeWidth": 1.5, "fontColor": "#0F6E56" },
+    "LAYER":              { "fillColor": "#F8FAFC", "strokeColor": "#475569", "strokeWidth": 1,   "fontColor": "#334155" },
+    "TRUST_BOUNDARY":     { "fillColor": "none",    "strokeColor": "#DC2626", "strokeWidth": 2,   "fontColor": "#991B1B", "dashed": 1 },
+    "NETWORK_SEGMENT":    { "fillColor": "#F8FAFC", "strokeColor": "#475569", "strokeWidth": 1,   "fontColor": "#475569" },
+    "USERS":              { "fillColor": "#EEEDFE", "strokeColor": "#534AB7", "strokeWidth": 1.5, "fontColor": "#534AB7", "dashed": 1 },
+    "EXTERNAL_SYSTEMS":   { "fillColor": "#FAECE7", "strokeColor": "#993C1D", "strokeWidth": 1.5, "fontColor": "#993C1D", "dashed": 1 },
+    "SECURITY":           { "fillColor": "#FEF2F2", "strokeColor": "#DC2626", "strokeWidth": 1.5, "fontColor": "#991B1B", "dashed": 1 },
+    "CICD":               { "fillColor": "#FDF2F8", "strokeColor": "#BE185D", "strokeWidth": 1.5, "fontColor": "#9D174D", "dashed": 1 },
+    "GENERIC":            { "fillColor": "#F8FAFC", "strokeColor": "#94A3B8", "strokeWidth": 1,   "fontColor": "#475569" },
+    "DEFAULT":            { "fillColor": "#F8FAFC", "strokeColor": "#94A3B8", "strokeWidth": 1,   "fontColor": "#475569" }
+  }
+}

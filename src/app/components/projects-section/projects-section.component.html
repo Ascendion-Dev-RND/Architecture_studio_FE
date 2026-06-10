@@ -1,0 +1,141 @@
+<section
+  id="projects"
+  style="
+    display: flex;
+    padding: 24px;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 24px;
+  "
+>
+  <div
+    class="container mx-auto px-6"
+    style="
+      display: flex;
+      padding: 24px;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.6);
+      box-shadow: 0 2px 4px 0 #d1d3d8;
+      backdrop-filter: blur(20px);
+    "
+  >
+    <!-- Tab Navigation -->
+    <div class="flex justify-center mb-12 light-theme">
+      <div
+        class="flex items-center gap-1 p-1 rounded-full w-fit"
+        style="background: #F1F5F9"
+      >
+        <button
+          type="button"
+          (click)="activeTab = 'recent'"
+          [class.bg-white]="activeTab === 'recent'"
+          [class.shadow-sm]="activeTab === 'recent'"
+          class="px-6 py-2 rounded-full text-sm font-medium transition-all"
+          [style.color]="activeTab === 'recent' ? '#1D4ED8' : '#616874'"
+          style="font-family: &quot;Inter&quot;, sans-serif"
+        >
+          <lucide-icon
+            name="Clock"
+            class="w-4 h-4 inline-block mr-2"
+          ></lucide-icon>
+          Recent
+        </button>
+        <button
+          type="button"
+          (click)="activeTab = 'all'"
+          [class.bg-white]="activeTab === 'all'"
+          [class.shadow-sm]="activeTab === 'all'"
+          class="px-6 py-2 rounded-full text-sm font-medium transition-all"
+          [style.color]="activeTab === 'all' ? '#1D4ED8' : '#616874'"
+          style="font-family: &quot;Inter&quot;, sans-serif"
+        >
+          <lucide-icon
+            name="Grid2X2"
+            class="w-4 h-4 inline-block mr-2"
+          ></lucide-icon>
+          All projects
+        </button>
+      </div>
+    </div>
+
+    <!-- Project Cards Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
+      <div
+        *ngFor="let project of displayedProjects; let i = index"
+        class="transition-all duration-300 animate-scale-in cursor-pointer hover:shadow-lg"
+        style="
+          border-radius: 12px;
+          background: rgba(255, 255, 255, 0.6);
+          box-shadow: 0 2px 4px 0 #d1d3d8;
+          backdrop-filter: blur(10px);
+          padding: 0 20px 20px 20px;
+          position: relative;
+        "
+        [style.animation-delay]="i * 0.1 + 's'"
+        (click)="openProject(project)"
+      >
+        <!-- Card Header: Title and New Badge -->
+        <div class="flex justify-between mb-4 items-center">
+          <span
+            *ngIf="project.isNew"
+            class="shrink-0 w-[51px] h-[28px] px-3 py-[4px] rounded text-xs font-normal flex items-center justify-center bg" style="color: #3b3f46;"
+          >
+            New
+          </span>
+          
+          <!-- Three-dots menu -->
+          <div class="relative ml-auto">
+            <lucide-icon
+              name="MoreVertical"
+              class="w-6 h-6 cursor-pointer hover:bg-gray-100 rounded p-1 transition-colors"
+              style="color: #000000"
+              (click)="toggleMenu(project, $event)"
+            >
+            </lucide-icon>
+            
+            <!-- Dropdown menu -->
+            <div
+              *ngIf="activeMenuProjectId === project.id"
+              class="absolute right-0 mt-1 w-40 rounded-lg shadow-lg z-10"
+              style="background: white; border: 1px solid #e2e8f0;"
+              (click)="$event.stopPropagation()"
+            >
+              <button
+                (click)="renameProject(project)"
+                class="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 rounded-t-lg transition-colors flex items-center gap-2"
+                style="color: #334155;"
+              >
+                <lucide-icon name="Pencil" class="w-4 h-4"></lucide-icon>
+                Rename
+              </button>
+              <button
+                (click)="deleteProject(project)"
+                class="w-full text-left px-4 py-2 text-sm hover:bg-red-50 rounded-b-lg transition-colors flex items-center gap-2"
+                style="color: #ef4444;"
+              >
+                <lucide-icon name="Trash2" class="w-4 h-4"></lucide-icon>
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <div class="flex items-start justify-between mb-3">
+          <h3 class="font-semibold text-foreground line-clamp-2" style="color: #3B3F46; font-family: 'Mulish', sans-serif;">
+            {{ project.name }}
+          </h3>
+        </div>
+
+        <!-- Card Meta: Author and Date -->
+        <div class="flex justify-between">
+          <p class="text-sm text-muted-foreground">By {{ project.author }}</p>
+          <p class="text-xs text-muted-foreground mt-1">{{ project.date }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

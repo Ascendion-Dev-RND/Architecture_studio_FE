@@ -1,0 +1,1667 @@
+<app-file-attachment
+  #fileAttachment
+  class="hidden"
+  [multiple]="true"
+  [showDropZone]="false"
+  [context]="'all'"
+  [maxFiles]="5"
+  (filesChanged)="onFilesChanged($event)"
+  (contextBuilt)="onContextBuilt($event)"
+></app-file-attachment>
+
+<div class="min-h-screen gradient-hero">
+  <!-- Breadcrumb Navigation -->
+  <app-breadcrumb [items]="breadcrumbItems" />
+
+  <!-- Fixed Navigation Header -->
+  <nav
+    class="hidden fixed top-0 left-0 right-0 z-50 gradient-lavender bg-background/80 backdrop-blur-md border-0 border-border/50"
+  >
+    <div class="container mx-auto px-6 py-4 flex items-center justify-between">
+      <a routerLink="/" class="flex items-center gap-2">
+        <span
+          class="text-lg font-medium tracking-wide bg-gradient-to-r from-coral to-coral-light bg-clip-text text-transparent"
+        >
+          Architecture-Studio
+        </span>
+      </a>
+    </div>
+  </nav>
+
+  <!-- Main Content Area -->
+  <main class="pt-20 h-screen flex flex-col">
+    <!-- 🔹 Unified Header Row (Chat + Canvas aligned) -->
+    <div
+      class="px-6 grid grid-cols-[auto_1fr] gap-4 items-center container max-w-none"
+    >
+      <!-- LEFT: Chat Collapse (aligned with chat panel width) -->
+      <div
+        class="transition-all duration-300 flex items-center"
+        [class.w-96]="!isChatCollapsed"
+        [class.w-16]="isChatCollapsed"
+      >
+        <button
+          (click)="toggleChat()"
+          class="shadow-sm rounded-md hover:bg-gray-100 transition"
+        >
+          <img
+            src="assets/icons/panel-left-close.svg"
+            alt="toggle panel"
+            class="w-4 h-4 object-contain"
+          />
+        </button>
+      </div>
+
+      <!-- RIGHT: Canvas Header (moved OUTSIDE canvas) -->
+      <div class="flex items-center justify-between pr-2">
+        <!-- Title -->
+        <div class="flex items-center gap-3 min-w-0">
+          <h2
+            *ngIf="diagramName"
+            class="text-sm font-semibold text-foreground truncate max-w-[280px]"
+          >
+            {{ diagramName }}
+          </h2>
+        </div>
+
+        <!-- Actions -->
+        <div *ngIf="!isLoading" class="flex items-center gap-2">
+          <!-- Add Diagram -->
+          <!-- <button
+            (click)="toggleActionsMenu()"
+            class="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg hover:bg-gray-100 font-semibold"
+          >
+            Add Diagram
+            <lucide-icon name="ChevronDown" class="w-3.5 h-3.5"></lucide-icon>
+          </button> -->
+
+          <!-- Sync (save manual canvas edits) — only when there are unsaved
+               edits on the v2 canvas. Batches the whole edit session into one
+               BFF save instead of a roundtrip per drag/move. -->
+          <button
+            *ngIf="canvasType === 'v2-maxgraph' && canvasDirty"
+            (click)="syncCanvas()"
+            [disabled]="canvasSyncing"
+            class="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg font-semibold bg-[#0044A3] text-white hover:bg-[#003a8c] disabled:opacity-50"
+            title="Save your manual canvas edits"
+          >
+            {{ canvasSyncing ? 'Syncing…' : 'Sync' }}
+            <lucide-icon name="Save" class="w-3.5 h-3.5"></lucide-icon>
+          </button>
+
+          <!-- Regenerate -->
+          <button
+            (click)="regenerateDiagram()"
+            class="flex items-center gap-1.5 px-3 py-1.5 text-xs hover:bg-gray-100 rounded-lg font-semibold"
+          >
+            Regenerate
+            <img
+              src="/assets/icons/sprout.svg"
+              alt="regenerate"
+              class="w-3.5 h-3.5 object-contain"
+            />
+          </button>
+
+          <!-- Export dropdown (PR5) -->
+          <div class="relative">
+            <button
+              (click)="toggleExportMenu(); $event.stopPropagation()"
+              [disabled]="isExporting"
+              class="flex items-center gap-1.5 px-3 py-1.5 text-xs hover:bg-gray-100 rounded-lg font-semibold disabled:opacity-50"
+            >
+              {{ isExporting ? 'Exporting…' : 'Export' }}
+              <img
+                src="assets/icons/download.svg"
+                alt="export"
+                class="w-3.5 h-3.5 object-contain"
+              />
+            </button>
+            <div
+              *ngIf="showExportMenu"
+              class="absolute right-0 mt-1 z-30 bg-card border border-border rounded-lg shadow-lg py-1 w-48"
+            >
+              <button
+                (click)="exportAs('png')"
+                class="w-full text-left px-3 py-2 text-xs hover:bg-secondary/50 flex items-center gap-2"
+              >
+                <lucide-icon name="image" class="w-3.5 h-3.5"></lucide-icon>
+                PNG (raster)
+              </button>
+              <button
+                (click)="exportAs('svg')"
+                class="w-full text-left px-3 py-2 text-xs hover:bg-secondary/50 flex items-center gap-2"
+              >
+                <lucide-icon name="file-image" class="w-3.5 h-3.5"></lucide-icon>
+                SVG (vector)
+              </button>
+              <button
+                (click)="exportAs('drawio')"
+                class="w-full text-left px-3 py-2 text-xs hover:bg-secondary/50 flex items-center gap-2"
+              >
+                <lucide-icon name="boxes" class="w-3.5 h-3.5"></lucide-icon>
+                drawio (.drawio)
+              </button>
+              <button
+                (click)="exportAs('json')"
+                class="w-full text-left px-3 py-2 text-xs hover:bg-secondary/50 flex items-center gap-2"
+              >
+                <lucide-icon name="code" class="w-3.5 h-3.5"></lucide-icon>
+                JSON (IntentGraph)
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="px-6 pb-6 container max-w-none mx-auto max-w-8xl flex-1 flex flex-col overflow-hidden"
+    >
+      <!-- Main Workspace Area -->
+      <div class="flex-1 flex gap-4 overflow-hidden">
+        <!-- Left: Chat Interface (Collapsible) -->
+        <div
+          class="flex flex-col bg-card-workspace rounded-sm card-shadow overflow-hidden transition-all duration-300"
+          [class.w-96]="!isChatCollapsed"
+          [class.w-16]="isChatCollapsed"
+        >
+          <!-- Tab Navigation and Collapse Button -->
+          <div class="flex-shrink-0 pt-1">
+            <!-- Tabs when expanded -->
+            <div
+              class="flex items-center justify-between px-3 pt-2"
+              [class.hidden]="isChatCollapsed"
+            >
+              <!-- Tabs Wrapper (light gray container like Figma) -->
+              <div
+                class="flex items-center gap-1 bg-[#F8FAFC] rounded-lg p-1.5"
+              >
+                <!-- Chat -->
+                <button
+                  (click)="setActiveTab('chat')"
+                  class="flex items-center gap-1.5 px-3 text-xs font-semibold rounded-md transition-all"
+                  [ngClass]="
+                    activeTab === 'chat'
+                      ? 'bg-blue-50 text-blue-600'
+                      : 'text-gray-500 hover:bg-gray-100'
+                  "
+                >
+                  <img
+                    [src]="
+                      activeTab === 'chat'
+                        ? 'assets/icons/message-circle-tab-active.svg'
+                        : 'assets/icons/message-circle-tab-inactive.svg'
+                    "
+                    class="w-3.5 h-3.5"
+                    alt="chat icon"
+                  />
+                  Chat
+                </button>
+                <!-- Code -->
+                <button
+                  (click)="setActiveTab('code')"
+                  class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all"
+                  [ngClass]="
+                    activeTab === 'code'
+                      ? 'bg-blue-50 text-blue-600'
+                      : 'text-gray-500 hover:bg-gray-100'
+                  "
+                >
+                  <img
+                    [src]="
+                      activeTab === 'code'
+                        ? 'assets/icons/code-tab-active.svg'
+                        : 'assets/icons/code-tab-inactive.svg'
+                    "
+                    class="w-3.5 h-3.5"
+                    alt="code icon"
+                  />
+                  Code
+                </button>
+
+                <!-- Overview -->
+                <button
+                  (click)="setActiveTab('overview')"
+                  class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all"
+                  [ngClass]="
+                    activeTab === 'overview'
+                      ? 'bg-blue-50 text-blue-600'
+                      : 'text-gray-500 hover:bg-gray-100'
+                  "
+                >
+                  <img
+                    [src]="
+                      activeTab === 'overview'
+                        ? 'assets/icons/overview-tab-active.svg'
+                        : 'assets/icons/overview-tab-inactive.svg'
+                    "
+                    class="w-3.5 h-3.5"
+                    alt="overview icon"
+                  />
+                  Overview
+                </button>
+
+                <!-- Insert -->
+                <button
+                  (click)="setActiveTab('insert')"
+                  class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-all"
+                  [ngClass]="
+                    activeTab === 'insert'
+                      ? 'bg-blue-50 text-blue-600'
+                      : 'text-gray-500 hover:bg-gray-100'
+                  "
+                >
+                  <img
+                    [src]="
+                      activeTab === 'insert'
+                        ? 'assets/icons/insert-tab-active.svg'
+                        : 'assets/icons/insert-tab-inactive.svg'
+                    "
+                    class="w-3.5 h-3.5"
+                    alt="insert icon"
+                  />
+                  Insert
+                </button>
+              </div>
+            </div>
+
+            <!-- Vertical icon stack when collapsed -->
+            <div
+              class="flex flex-col items-center gap-4 py-4"
+              [class.hidden]="!isChatCollapsed"
+            >
+              <button
+                type="button"
+                (click)="setActiveTab('chat')"
+                class="p-2 text-muted-foreground hover:text-primary hover:bg-blue-50 rounded-lg transition-colors"
+                title="Chat"
+              >
+                <img
+                  [src]="
+                    activeTab === 'chat'
+                      ? 'assets/icons/sidenav-message-circle-active.svg'
+                      : 'assets/icons/sidenav-message-circle-inactive.svg'
+                  "
+                  class="w-5 h-5"
+                  alt="message icon"
+                />
+              </button>
+              <button
+                type="button"
+                (click)="setActiveTab('code')"
+                class="p-2 text-muted-foreground hover:text-primary hover:bg-blue-50 rounded-lg transition-colors"
+                title="Diagram as Code"
+              >
+                <img
+                  [src]="
+                    activeTab === 'code'
+                      ? 'assets/icons/sidenav-network-active.svg'
+                      : 'assets/icons/sidenav-network-inactive.svg'
+                  "
+                  class="w-5 h-5"
+                  alt="network icon"
+                />
+              </button>
+              <button
+                type="button"
+                (click)="setActiveTab('overview')"
+                class="p-2 text-muted-foreground hover:text-primary hover:bg-blue-50 rounded-lg transition-colors"
+                title="Overview"
+              >
+                <img
+                  [src]="
+                    activeTab === 'overview'
+                      ? '/assets/icons/sidenav-overview-active.svg'
+                      : '/assets/icons/sidenav-overview-inactive.svg'
+                  "
+                  class="w-5 h-5"
+                  alt="overview icon"
+                />
+              </button>
+              <button
+                type="button"
+                (click)="setActiveTab('insert')"
+                class="p-2 hover:bg-blue-50 rounded-lg transition-colors"
+                title="Insert"
+              >
+                <img
+                  [src]="
+                    activeTab === 'insert'
+                      ? 'assets/icons/sidenav-insert-active.svg'
+                      : 'assets/icons/sidenav-insert-inactive.svg'
+                  "
+                  class="w-5 h-5"
+                  alt="insert icon"
+                />
+              </button>
+            </div>
+          </div>
+
+          <!-- Chat Tab Content (Structured Presentation Messages) -->
+          <div
+            #chatContainer
+            class="flex-1 p-4 overflow-y-auto space-y-3 min-h-0"
+            [class.hidden]="isChatCollapsed || activeTab !== 'chat'"
+          >
+            <!-- Interactive Clarification Questions (pre-generation) -->
+            <app-clarification-questions
+              *ngIf="showClarificationQuestions"
+              [questions]="clarificationQuestions"
+              (answersSubmitted)="handleClarificationAnswers($event)"
+            >
+            </app-clarification-questions>
+
+            <!-- Structured presentation messages from workspace state -->
+            <ng-container *ngFor="let msg of presentationMessages">
+              <!-- ─── Request Summary Card (clean, no Q&A dump) ─── -->
+              <div *ngIf="msg.type === 'request_summary'" class="flex gap-3">
+                <!-- <div
+                  class="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center"
+                >
+                  <lucide-icon
+                    name="FileText"
+                    class="w-4 h-4 text-indigo-600"
+                  ></lucide-icon>
+                </div> -->
+                <div class="flex-1">
+                  <!-- class="bg-white rounded-xl p-4 border border-indigo-200 shadow-sm" -->
+                  <div
+                    class="p-3 max-w-[85%] text-sm rounded-2xl bg-[#0044A3] text-white rounded-br-none ml-auto"
+                  >
+                    <div class="flex items-center justify-between mb-2">
+                      <span
+                        class="text-xs font-bold uppercase tracking-wider text-white"
+                        >Architecture Request</span
+                      >
+                      <span
+                        *ngIf="msg.metadata?.nodeCount"
+                        class="text-xs text-gray-500"
+                      >
+                        {{ msg.metadata.nodeCount }} components &middot;
+                        {{ msg.metadata.containerCount }} zones
+                      </span>
+                    </div>
+                    <div class="space-y-1.5">
+                      <div class="text-xs font-bold uppercase tracking-wider text-white">
+                        Prompt
+                      </div>
+                      <p
+                        class="text-sm text-white font-semibold leading-relaxed whitespace-pre-line"
+                      >
+                        {{ msg.metadata?.originalPrompt || msg.content }}
+                      </p>
+                    </div>
+                    <p
+                      *ngIf="msg.metadata?.shortSummary"
+                      class="text-xs text-white mt-1"
+                    >
+                      {{ msg.metadata.shortSummary }}
+                    </p>
+                    <div
+                      *ngIf="(msg.metadata?.clarificationItems || []).length"
+                      class="mt-4 space-y-3 border-t border-indigo-100 pt-3"
+                    >
+                      <div class="text-xs font-semibold uppercase tracking-wider text-indigo-600">
+                        Clarifications
+                      </div>
+                      <div
+                        *ngFor="let item of msg.metadata?.clarificationItems || []"
+                        class="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2"
+                      >
+                        <div class="text-xs font-medium text-slate-500">
+                          <span class="font-semibold">Q:</span> {{ item.question }}
+                        </div>
+                        <div class="text-sm font-semibold text-emerald-700 mt-1">
+                          <span class="font-semibold">A:</span> {{ item.answer }}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ─── Clarification Summary (Chips) ─── -->
+              <div
+                *ngIf="msg.type === 'clarification_summary'"
+                class="flex gap-3"
+              >
+                <div
+                  class="flex-shrink-0 w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center"
+                >
+                  <lucide-icon
+                    name="CheckCircle"
+                    class="w-4 h-4 text-emerald-600"
+                  ></lucide-icon>
+                </div>
+                <div class="flex-1">
+                  <div
+                    class="bg-white rounded-xl p-4 border border-emerald-200 shadow-sm"
+                  >
+                    <span
+                      class="text-xs font-semibold uppercase tracking-wider text-emerald-600 mb-2 block"
+                      >Requirements Clarified</span
+                    >
+                    <div class="flex flex-wrap gap-2">
+                      <span
+                        *ngFor="let chip of msg.metadata?.chips || []"
+                        class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200"
+                        [title]="chip.label"
+                      >
+                        {{ chip.value }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ─── Synthesis Message ─── -->
+              <div *ngIf="msg.type === 'synthesis'" class="flex gap-3">
+                <div
+                  class="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center"
+                >
+                  <lucide-icon
+                    name="Bot"
+                    class="w-4 h-4 text-blue-600"
+                  ></lucide-icon>
+                </div>
+                <div class="flex-1">
+                  <div
+                    class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-200 shadow-sm"
+                  >
+                    <p
+                      class="text-sm text-gray-800 leading-relaxed"
+                      [innerHTML]="formatMarkdownBold(msg.content)"
+                    ></p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ─── Quick Actions ─── -->
+              <div *ngIf="msg.type === 'quick_actions'" class="flex gap-3">
+                <div
+                  class="flex-shrink-0 w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center"
+                >
+                  <lucide-icon
+                    name="Zap"
+                    class="w-4 h-4 text-amber-600"
+                  ></lucide-icon>
+                </div>
+                <div class="flex-1">
+                  <div
+                    class="bg-white rounded-xl p-4 border border-amber-200 shadow-sm"
+                  >
+                    <span
+                      class="text-xs font-semibold uppercase tracking-wider text-amber-600 mb-3 block"
+                      >{{ msg.content }}</span
+                    >
+                    <div class="grid grid-cols-2 gap-2">
+                      <button
+                        *ngFor="let action of msg.metadata?.actions || []"
+                        (click)="handleQuickAction(action)"
+                        [title]="action.prompt || action.label"
+                        class="flex items-center gap-2 px-3 py-2 text-xs font-medium bg-gray-50 hover:bg-indigo-50 hover:text-indigo-700 border border-gray-200 hover:border-indigo-300 rounded-lg transition-all text-left"
+                      >
+                        <lucide-icon
+                          [name]="action.icon || 'ArrowRight'"
+                          class="w-3.5 h-3.5 flex-shrink-0"
+                        ></lucide-icon>
+                        <span>{{ action.label }}</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ─── User Message ─── -->
+              <div
+                *ngIf="msg.type === 'user'"
+                class="flex gap-3 flex-row-reverse"
+              >
+                <div class="flex-1">
+                  <div
+                    class="p-3 max-w-[85%] text-sm rounded-2xl bg-[#0044A3] text-white rounded-br-none ml-auto"
+                  >
+                    <p class="text-sm">{{ msg.content }}</p>
+                  </div>
+                  <p class="text-xs text-muted-foreground mt-1 text-right">
+                    {{ msg.timestamp | date: "shortTime" }}
+                  </p>
+                </div>
+              </div>
+
+              <!-- ─── Assistant Message ─── -->
+              <div *ngIf="msg.type === 'assistant'" class="flex gap-3">
+                <div
+                  class="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center"
+                >
+                  <lucide-icon
+                    name="Bot"
+                    class="w-4 h-4 text-blue-600"
+                  ></lucide-icon>
+                </div>
+                <div class="flex-1">
+                  <div
+                    class="p-3 max-w-[85%] text-sm rounded-2xl bg-[#E6F3FF] text-foreground rounded-tl-none"
+                  >
+                    <p
+                      class="text-sm"
+                      [innerHTML]="formatMarkdownBold(msg.content)"
+                    ></p>
+                  </div>
+                  <p class="text-xs text-muted-foreground mt-1">
+                    {{ msg.timestamp | date: "shortTime" }}
+                  </p>
+                </div>
+              </div>
+            </ng-container>
+
+            <!-- Streaming status / loading indicator -->
+            <div *ngIf="showStreamingStatusBubble" class="flex gap-3">
+              <div
+                class="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center"
+              >
+                <lucide-icon name="Loader2" class="w-4 h-4 text-blue-600 animate-spin"></lucide-icon>
+              </div>
+              <div class="flex-1">
+                <div
+                  class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-3 inline-block border border-blue-200"
+                >
+                  <div class="flex items-center gap-3 mb-2">
+                    <div class="flex gap-1">
+                      <span
+                        class="w-2 h-2 bg-blue-400 rounded-full animate-bounce"
+                        style="animation-delay: 0ms"
+                      ></span>
+                      <span
+                        class="w-2 h-2 bg-blue-400 rounded-full animate-bounce"
+                        style="animation-delay: 150ms"
+                      ></span>
+                      <span
+                        class="w-2 h-2 bg-blue-400 rounded-full animate-bounce"
+                        style="animation-delay: 300ms"
+                      ></span>
+                    </div>
+                    <span class="font-medium">{{
+                      streamingStatus || "Processing…"
+                    }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Empty state (no messages and no state) -->
+            <div
+              *ngIf="presentationMessages.length === 0 && !isChatLoading"
+              class="flex flex-col items-center justify-center h-full text-gray-400 text-sm"
+            >
+              <div
+                class="w-12 h-12 rounded-full bg-white flex items-center justify-center mb-4"
+              >
+                <lucide-icon
+                  name="MessageCircle"
+                  class="w-6 h-6 text-blue-500"
+                ></lucide-icon>
+              </div>
+              <p class="font-medium text-gray-500">
+                Generating your architecture...
+              </p>
+            </div>
+          </div>
+
+          <!-- Diagram as Code Tab Content -->
+          <div
+            class="flex-1 flex flex-col p-4 overflow-hidden min-h-0"
+            [class.hidden]="isChatCollapsed || activeTab !== 'code'"
+          >
+            <div class="flex items-center justify-between mb-2">
+              <p class="text-xs text-muted-foreground">
+                DAC syntax &mdash; containers, icons &amp; connections
+              </p>
+              <div class="flex gap-1.5">
+                <button
+                  (click)="reverseToCode()"
+                  title="Generate code from current diagram"
+                  class="px-2 py-1 text-xs font-medium border border-border rounded-md hover:bg-secondary/50 transition-colors"
+                >
+                  <span class="flex items-center gap-1">
+                    <lucide-icon name="ArrowLeft" class="w-3 h-3"></lucide-icon>
+                    From Diagram
+                  </span>
+                </button>
+                <button
+                  (click)="renderFromCode()"
+                  title="Render diagram from code"
+                  class="px-2 py-1 text-xs font-medium bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
+                >
+                  <span class="flex items-center gap-1">
+                    <lucide-icon name="Play" class="w-3 h-3"></lucide-icon>
+                    Render
+                  </span>
+                </button>
+              </div>
+            </div>
+            <textarea
+              [(ngModel)]="diagramCode"
+              class="flex-1 w-full p-3 bg-gray-900 text-gray-100 rounded-lg font-mono text-xs resize-none outline-none focus:ring-2 focus:ring-indigo-500 leading-relaxed"
+              placeholder="title My Architecture
+
+User Interface [icon: aws-amplify] {
+  Web App [icon: react]
+}
+
+AWS Services [icon: aws] {
+  API Gateway [icon: aws-api-gateway]
+  Lambda Functions [icon: aws-lambda] {
+    Service A [icon: aws-lambda]
+    Service B [icon: aws-lambda]
+  }
+  Database [icon: aws-rds]
+  Storage [icon: aws-s3]
+}
+
+// Connections
+Web App > API Gateway
+API Gateway > Lambda Functions
+Service A > Database
+Service B > Storage"
+              spellcheck="false"
+            ></textarea>
+            <p *ngIf="dacError" class="mt-1 text-xs text-red-500">
+              {{ dacError }}
+            </p>
+          </div>
+
+          <!-- Overview Tab Content (Structured Sections) -->
+          <div
+            class="flex-1 p-4 overflow-y-auto min-h-0"
+            [class.hidden]="isChatCollapsed || activeTab !== 'overview'"
+          >
+            <!-- Generating the rich overview (lazy narrator agent, fired on
+                 first open of this tab) -->
+            <div
+              *ngIf="overviewLoading"
+              class="mb-4 flex items-center justify-center gap-2 text-sm text-gray-500"
+            >
+              <span class="inline-block w-4 h-4 rounded-full border-2 border-gray-300 border-t-transparent animate-spin"></span>
+              Generating overview…
+            </div>
+
+            <!-- Overview fetch failed -->
+            <div
+              *ngIf="overviewError && !overviewLoading"
+              class="mb-4 text-center text-sm text-red-600"
+            >
+              {{ overviewError }}
+              <button (click)="loadOverview()" class="ml-2 text-xs underline">retry</button>
+            </div>
+
+            <!-- No overview yet -->
+            <div
+              *ngIf="!structuredOverview && !overviewLoading && !overviewError"
+              class="text-center py-12 text-gray-400"
+            >
+              <lucide-icon
+                name="Layers"
+                class="w-8 h-8 mx-auto mb-3 text-gray-300"
+              ></lucide-icon>
+              <p class="text-sm">
+                Overview will appear after generation completes.
+              </p>
+            </div>
+
+            <div *ngIf="structuredOverview" class="space-y-5 text-sm">
+              <!-- Context Badges (mode, depth, env, criticality) -->
+              <div
+                *ngIf="architectureContext"
+                class="flex flex-wrap gap-2 mb-1"
+              >
+                <span
+                  class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wide"
+                  [ngClass]="{
+                    'bg-green-100 text-green-700':
+                      architectureContext.mode === 'greenfield',
+                    'bg-blue-100 text-blue-700':
+                      architectureContext.mode === 'enhance',
+                    'bg-purple-100 text-purple-700':
+                      architectureContext.mode === 'transform',
+                    'bg-gray-100 text-gray-700':
+                      architectureContext.mode === 'review',
+                  }"
+                >
+                  <lucide-icon
+                    [name]="
+                      architectureContext.mode === 'greenfield'
+                        ? 'Plus'
+                        : architectureContext.mode === 'transform'
+                          ? 'ArrowRightLeft'
+                          : 'Pencil'
+                    "
+                    class="w-3 h-3"
+                  ></lucide-icon>
+                  {{ architectureContext.mode }}
+                </span>
+                <span
+                  class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-semibold bg-indigo-100 text-indigo-700 uppercase tracking-wide"
+                >
+                  <lucide-icon name="Layers" class="w-3 h-3"></lucide-icon>
+                  {{ architectureContext.depthProfile?.depthLevel }}
+                </span>
+                <span
+                  class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wide"
+                  [ngClass]="{
+                    'bg-yellow-100 text-yellow-700':
+                      architectureContext.depthProfile?.environmentClass ===
+                        'dev' ||
+                      architectureContext.depthProfile?.environmentClass ===
+                        'test',
+                    'bg-orange-100 text-orange-700':
+                      architectureContext.depthProfile?.environmentClass ===
+                        'staging' ||
+                      architectureContext.depthProfile?.environmentClass ===
+                        'uat',
+                    'bg-red-100 text-red-700':
+                      architectureContext.depthProfile?.environmentClass ===
+                        'prod' ||
+                      architectureContext.depthProfile?.environmentClass ===
+                        'dr',
+                  }"
+                >
+                  <lucide-icon name="Server" class="w-3 h-3"></lucide-icon>
+                  {{ architectureContext.depthProfile?.environmentClass }}
+                </span>
+                <span
+                  class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wide"
+                  [ngClass]="{
+                    'bg-gray-100 text-gray-600':
+                      architectureContext.depthProfile?.criticalityLevel ===
+                      'low',
+                    'bg-amber-100 text-amber-700':
+                      architectureContext.depthProfile?.criticalityLevel ===
+                      'medium',
+                    'bg-red-100 text-red-700':
+                      architectureContext.depthProfile?.criticalityLevel ===
+                      'high',
+                    'bg-red-200 text-red-800':
+                      architectureContext.depthProfile?.criticalityLevel ===
+                      'mission-critical',
+                  }"
+                >
+                  <lucide-icon name="AlertCircle" class="w-3 h-3"></lucide-icon>
+                  {{ architectureContext.depthProfile?.criticalityLevel }}
+                </span>
+                <span
+                  *ngIf="architectureContext.depthProfile?.numAzs"
+                  class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-semibold bg-cyan-100 text-cyan-700 uppercase tracking-wide"
+                >
+                  <lucide-icon name="Database" class="w-3 h-3"></lucide-icon>
+                  {{ architectureContext.depthProfile?.numAzs }} AZ{{
+                    architectureContext.depthProfile?.numAzs > 1 ? "s" : ""
+                  }}
+                </span>
+              </div>
+
+              <!-- Well-Architected Score Card -->
+              <section *ngIf="principleEvaluation">
+                <h3
+                  class="text-xs font-semibold uppercase tracking-wider text-sky-600 mb-2 flex items-center gap-1.5"
+                >
+                  <lucide-icon name="Award" class="w-3.5 h-3.5"></lucide-icon>
+                  Well-Architected Assessment
+                </h3>
+                <div class="bg-sky-50/50 rounded-lg p-3 border border-sky-100">
+                  <div class="flex items-center gap-3 mb-2">
+                    <div
+                      class="text-2xl font-bold"
+                      [ngClass]="{
+                        'text-green-600':
+                          principleEvaluation.overallScore >= 0.8,
+                        'text-amber-600':
+                          principleEvaluation.overallScore >= 0.5 &&
+                          principleEvaluation.overallScore < 0.8,
+                        'text-red-600': principleEvaluation.overallScore < 0.5,
+                      }"
+                    >
+                      {{ (principleEvaluation.overallScore * 100).toFixed(0) }}%
+                    </div>
+                    <p class="text-xs text-gray-600 flex-1">
+                      {{ principleEvaluation.summary }}
+                    </p>
+                  </div>
+                  <div class="grid grid-cols-2 gap-2">
+                    <div
+                      *ngFor="let ps of principleEvaluation.pillarScores"
+                      class="flex items-center gap-2 text-xs"
+                    >
+                      <div class="w-16 bg-gray-200 rounded-full h-1.5">
+                        <div
+                          class="h-1.5 rounded-full"
+                          [style.width.%]="ps.score * 100"
+                          [ngClass]="{
+                            'bg-green-500': ps.score >= 0.8,
+                            'bg-amber-500': ps.score >= 0.5 && ps.score < 0.8,
+                            'bg-red-500': ps.score < 0.5,
+                          }"
+                        ></div>
+                      </div>
+                      <span
+                        class="text-gray-600 truncate"
+                        [title]="ps.displayName"
+                        >{{ ps.displayName }}</span
+                      >
+                      <span class="text-gray-400 ml-auto"
+                        >{{ ps.checksMet }}/{{ ps.checksTotal }}</span
+                      >
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <!-- Delta Summary (AS-IS to TO-BE) -->
+              <section *ngIf="deltaSummary && deltaSummary.totalChanges > 0">
+                <h3
+                  class="text-xs font-semibold uppercase tracking-wider text-violet-600 mb-2 flex items-center gap-1.5"
+                >
+                  <lucide-icon
+                    name="ArrowRightLeft"
+                    class="w-3.5 h-3.5"
+                  ></lucide-icon>
+                  Architecture Delta
+                </h3>
+                <div
+                  class="bg-violet-50/50 rounded-lg p-3 border border-violet-100 space-y-2"
+                >
+                  <div class="flex gap-3 text-xs">
+                    <span
+                      class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-green-100 text-green-700 font-semibold"
+                    >
+                      +{{ deltaSummary.counts?.new || 0 }} new
+                    </span>
+                    <span
+                      class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-red-100 text-red-700 font-semibold"
+                    >
+                      -{{ deltaSummary.counts?.removed || 0 }} removed
+                    </span>
+                    <span
+                      class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-amber-100 text-amber-700 font-semibold"
+                    >
+                      ~{{ deltaSummary.counts?.modified || 0 }} modified
+                    </span>
+                    <span
+                      class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-gray-100 text-gray-600 font-semibold"
+                    >
+                      ={{ deltaSummary.counts?.retained || 0 }} retained
+                    </span>
+                  </div>
+                  <div
+                    *ngIf="deltaSummary.asIsSummary"
+                    class="text-xs text-gray-500"
+                  >
+                    <span class="font-medium text-gray-600">AS-IS:</span>
+                    {{ deltaSummary.asIsSummary }}
+                  </div>
+                  <div
+                    *ngIf="deltaSummary.toBeSummary"
+                    class="text-xs text-gray-500"
+                  >
+                    <span class="font-medium text-gray-600">TO-BE:</span>
+                    {{ deltaSummary.toBeSummary }}
+                  </div>
+                  <!-- Migration Considerations -->
+                  <div
+                    *ngIf="deltaSummary.migrationConsiderations?.length"
+                    class="mt-2 pt-2 border-t border-violet-200"
+                  >
+                    <div
+                      class="text-[10px] font-semibold uppercase text-violet-500 mb-1"
+                    >
+                      Migration Considerations
+                    </div>
+                    <div
+                      *ngFor="let mc of deltaSummary.migrationConsiderations"
+                      class="flex items-start gap-2 text-xs text-gray-600 py-0.5"
+                    >
+                      <span
+                        class="inline-block px-1 py-0.5 rounded text-[9px] font-bold uppercase"
+                        [ngClass]="{
+                          'bg-red-100 text-red-600': mc.risk === 'high',
+                          'bg-amber-100 text-amber-600': mc.risk === 'medium',
+                          'bg-green-100 text-green-600': mc.risk === 'low',
+                        }"
+                      >
+                        {{ mc.risk }}
+                      </span>
+                      <span
+                        ><span class="font-medium">{{ mc.title }}:</span>
+                        {{ mc.description }}</span
+                      >
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <!-- Executive Summary -->
+              <section>
+                <h3
+                  class="text-xs font-semibold uppercase tracking-wider text-indigo-600 mb-2 flex items-center gap-1.5"
+                >
+                  <lucide-icon
+                    name="FileText"
+                    class="w-3.5 h-3.5"
+                  ></lucide-icon>
+                  Executive Summary
+                </h3>
+                <p
+                  class="text-gray-700 leading-relaxed bg-indigo-50/50 rounded-lg p-3 border border-indigo-100"
+                >
+                  {{ structuredOverview.executiveSummary }}
+                </p>
+              </section>
+
+              <section *ngIf="structuredOverview.architectureRationale?.length">
+                <h3
+                  class="text-xs font-semibold uppercase tracking-wider text-sky-600 mb-2 flex items-center gap-1.5"
+                >
+                  <lucide-icon name="Target" class="w-3.5 h-3.5"></lucide-icon>
+                  Architecture Rationale
+                </h3>
+                <div class="space-y-2">
+                  <div
+                    *ngFor="let item of structuredOverview.architectureRationale"
+                    class="bg-sky-50/60 rounded-lg p-3 border border-sky-100"
+                  >
+                    <div class="font-semibold text-sky-800 text-xs">
+                      {{ item.title }}
+                    </div>
+                    <p class="text-gray-600 text-xs mt-1 leading-relaxed">
+                      {{ item.description }}
+                    </p>
+                  </div>
+                </div>
+              </section>
+
+              <section *ngIf="structuredOverview.dataFlowSummary?.length">
+                <h3
+                  class="text-xs font-semibold uppercase tracking-wider text-cyan-600 mb-2 flex items-center gap-1.5"
+                >
+                  <lucide-icon name="Workflow" class="w-3.5 h-3.5"></lucide-icon>
+                  Data Flow
+                </h3>
+                <div class="space-y-2">
+                  <div
+                    *ngFor="let item of structuredOverview.dataFlowSummary"
+                    class="bg-cyan-50/60 rounded-lg p-3 border border-cyan-100"
+                  >
+                    <div class="font-semibold text-cyan-800 text-xs">
+                      {{ item.title }}
+                    </div>
+                    <p class="text-gray-600 text-xs mt-1 leading-relaxed">
+                      {{ item.description }}
+                    </p>
+                  </div>
+                </div>
+              </section>
+
+              <section *ngIf="structuredOverview.securitySummary?.length">
+                <h3
+                  class="text-xs font-semibold uppercase tracking-wider text-rose-600 mb-2 flex items-center gap-1.5"
+                >
+                  <lucide-icon name="Shield" class="w-3.5 h-3.5"></lucide-icon>
+                  Security Posture
+                </h3>
+                <div class="space-y-2">
+                  <div
+                    *ngFor="let item of structuredOverview.securitySummary"
+                    class="bg-rose-50/60 rounded-lg p-3 border border-rose-100"
+                  >
+                    <div class="font-semibold text-rose-800 text-xs">
+                      {{ item.title }}
+                    </div>
+                    <p class="text-gray-600 text-xs mt-1 leading-relaxed">
+                      {{ item.description }}
+                    </p>
+                  </div>
+                </div>
+              </section>
+
+              <!-- Key Components by Layer -->
+              <section>
+                <h3
+                  class="text-xs font-semibold uppercase tracking-wider text-blue-600 mb-2 flex items-center gap-1.5"
+                >
+                  <lucide-icon name="Layers" class="w-3.5 h-3.5"></lucide-icon>
+                  Key Components
+                </h3>
+                <div class="space-y-3">
+                  <div
+                    *ngFor="let group of structuredOverview.componentGroups"
+                    class="bg-white rounded-lg border border-gray-200 p-3"
+                  >
+                    <h4
+                      class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2"
+                    >
+                      {{ group.label }}
+                    </h4>
+                    <div class="space-y-1.5">
+                      <div
+                        *ngFor="let comp of group.components"
+                        class="flex items-start gap-2 text-xs"
+                      >
+                        <span class="font-medium text-gray-800 min-w-[100px]">{{
+                          comp.name
+                        }}</span>
+                        <span class="text-gray-500">{{
+                          comp.description
+                        }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section *ngIf="structuredOverview.componentRationale?.length">
+                <h3
+                  class="text-xs font-semibold uppercase tracking-wider text-blue-700 mb-2 flex items-center gap-1.5"
+                >
+                  <lucide-icon name="Boxes" class="w-3.5 h-3.5"></lucide-icon>
+                  Component Rationale
+                </h3>
+                <div class="space-y-2">
+                  <div
+                    *ngFor="let item of structuredOverview.componentRationale"
+                    class="bg-white rounded-lg border border-blue-100 p-3"
+                  >
+                    <div class="font-semibold text-blue-800 text-xs">
+                      {{ item.title }}
+                    </div>
+                    <p class="text-gray-600 text-xs mt-1 leading-relaxed">
+                      {{ item.description }}
+                    </p>
+                  </div>
+                </div>
+              </section>
+
+              <!-- Architecture Principles -->
+              <section *ngIf="structuredOverview.principles?.length">
+                <h3
+                  class="text-xs font-semibold uppercase tracking-wider text-purple-600 mb-2 flex items-center gap-1.5"
+                >
+                  <lucide-icon name="Shield" class="w-3.5 h-3.5"></lucide-icon>
+                  Architecture Principles
+                </h3>
+                <div class="space-y-2">
+                  <div
+                    *ngFor="let principle of structuredOverview.principles"
+                    class="bg-purple-50/50 rounded-lg p-3 border border-purple-100"
+                  >
+                    <div class="font-semibold text-purple-800 text-xs">
+                      {{ principle.name }}
+                    </div>
+                    <p class="text-gray-600 text-xs mt-0.5">
+                      {{ principle.description }}
+                    </p>
+                    <p class="text-gray-400 text-xs mt-0.5 italic">
+                      {{ principle.rationale }}
+                    </p>
+                  </div>
+                </div>
+              </section>
+
+              <section *ngIf="structuredOverview.principleAlignment?.length">
+                <h3
+                  class="text-xs font-semibold uppercase tracking-wider text-fuchsia-600 mb-2 flex items-center gap-1.5"
+                >
+                  <lucide-icon name="Shield" class="w-3.5 h-3.5"></lucide-icon>
+                  Principle Alignment
+                </h3>
+                <div class="space-y-2">
+                  <div
+                    *ngFor="let item of structuredOverview.principleAlignment"
+                    class="bg-fuchsia-50/60 rounded-lg p-3 border border-fuchsia-100"
+                  >
+                    <div class="font-semibold text-fuchsia-800 text-xs">
+                      {{ item.title }}
+                    </div>
+                    <p class="text-gray-600 text-xs mt-1 leading-relaxed">
+                      {{ item.description }}
+                    </p>
+                  </div>
+                </div>
+              </section>
+
+              <!-- Patterns Used -->
+              <section *ngIf="structuredOverview.patterns?.length">
+                <h3
+                  class="text-xs font-semibold uppercase tracking-wider text-teal-600 mb-2 flex items-center gap-1.5"
+                >
+                  <lucide-icon
+                    name="GitBranch"
+                    class="w-3.5 h-3.5"
+                  ></lucide-icon>
+                  Patterns Used
+                </h3>
+                <div class="space-y-2">
+                  <div
+                    *ngFor="let pattern of structuredOverview.patterns"
+                    class="bg-teal-50/50 rounded-lg p-3 border border-teal-100"
+                  >
+                    <div class="font-semibold text-teal-800 text-xs">
+                      {{ pattern.name }}
+                    </div>
+                    <p class="text-gray-600 text-xs mt-0.5">
+                      {{ pattern.description }}
+                    </p>
+                    <p class="text-gray-400 text-xs mt-0.5 italic">
+                      {{ pattern.applicability }}
+                    </p>
+                  </div>
+                </div>
+              </section>
+
+              <section *ngIf="structuredOverview.wellArchitectedAlignment?.length">
+                <h3
+                  class="text-xs font-semibold uppercase tracking-wider text-emerald-600 mb-2 flex items-center gap-1.5"
+                >
+                  <lucide-icon name="CheckCircle2" class="w-3.5 h-3.5"></lucide-icon>
+                  Well-Architected Alignment
+                </h3>
+                <div class="space-y-2">
+                  <div
+                    *ngFor="let item of structuredOverview.wellArchitectedAlignment"
+                    class="bg-emerald-50/60 rounded-lg p-3 border border-emerald-100"
+                  >
+                    <div class="font-semibold text-emerald-800 text-xs">
+                      {{ item.title }}
+                    </div>
+                    <p class="text-gray-600 text-xs mt-1 leading-relaxed">
+                      {{ item.description }}
+                    </p>
+                  </div>
+                </div>
+              </section>
+
+              <section *ngIf="structuredOverview.architectureDecisions?.length">
+                <h3
+                  class="text-xs font-semibold uppercase tracking-wider text-slate-700 mb-2 flex items-center gap-1.5"
+                >
+                  <lucide-icon name="ListOrdered" class="w-3.5 h-3.5"></lucide-icon>
+                  Architecture Decisions
+                </h3>
+                <div class="space-y-2">
+                  <div
+                    *ngFor="let decision of structuredOverview.architectureDecisions"
+                    class="bg-white rounded-lg p-3 border border-slate-200"
+                  >
+                    <div class="flex items-center gap-2 mb-1">
+                      <span class="font-semibold text-slate-800 text-xs">{{ decision.title }}</span>
+                      <span
+                        class="inline-block px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-600"
+                      >
+                        {{ decision.category }}
+                      </span>
+                    </div>
+                    <p class="text-gray-700 text-xs leading-relaxed">
+                      {{ decision.decision }}
+                    </p>
+                    <p class="text-gray-500 text-xs mt-1 leading-relaxed">
+                      {{ decision.rationale }}
+                    </p>
+                  </div>
+                </div>
+              </section>
+
+              <section *ngIf="structuredOverview.tradeoffs?.length">
+                <h3
+                  class="text-xs font-semibold uppercase tracking-wider text-orange-600 mb-2 flex items-center gap-1.5"
+                >
+                  <lucide-icon name="ArrowRightLeft" class="w-3.5 h-3.5"></lucide-icon>
+                  Tradeoffs
+                </h3>
+                <div class="space-y-2">
+                  <div
+                    *ngFor="let tradeoff of structuredOverview.tradeoffs"
+                    class="bg-orange-50/60 rounded-lg p-3 border border-orange-100"
+                  >
+                    <div class="flex items-center gap-2 mb-1">
+                      <span class="font-semibold text-orange-800 text-xs">{{ tradeoff.dimension }}</span>
+                      <span
+                        class="inline-block px-1.5 py-0.5 rounded text-[10px] font-medium bg-white text-orange-700 border border-orange-200"
+                      >
+                        {{ tradeoff.impact }} impact
+                      </span>
+                    </div>
+                    <p class="text-gray-700 text-xs leading-relaxed">
+                      {{ tradeoff.choice }}
+                    </p>
+                    <p class="text-gray-500 text-xs mt-1 leading-relaxed">
+                      {{ tradeoff.rationale }}
+                    </p>
+                  </div>
+                </div>
+              </section>
+
+              <!-- Key Considerations / NFRs -->
+              <section *ngIf="structuredOverview.considerations?.length">
+                <h3
+                  class="text-xs font-semibold uppercase tracking-wider text-amber-600 mb-2 flex items-center gap-1.5"
+                >
+                  <lucide-icon
+                    name="AlertTriangle"
+                    class="w-3.5 h-3.5"
+                  ></lucide-icon>
+                  Key Considerations
+                </h3>
+                <div class="space-y-2">
+                  <div
+                    *ngFor="let c of structuredOverview.considerations"
+                    class="flex items-start gap-2 bg-white rounded-lg p-3 border"
+                    [ngClass]="{
+                      'border-red-200': c.severity === 'high',
+                      'border-amber-200': c.severity === 'medium',
+                      'border-gray-200': c.severity === 'low',
+                    }"
+                  >
+                    <span
+                      class="inline-block px-1.5 py-0.5 rounded text-[10px] font-bold uppercase"
+                      [ngClass]="{
+                        'bg-red-100 text-red-700': c.severity === 'high',
+                        'bg-amber-100 text-amber-700': c.severity === 'medium',
+                        'bg-gray-100 text-gray-600': c.severity === 'low',
+                      }"
+                    >
+                      {{ c.severity }}
+                    </span>
+                    <div>
+                      <span class="font-medium text-gray-800 text-xs">{{
+                        c.title
+                      }}</span>
+                      <span class="text-gray-500 text-xs ml-1"
+                        >({{ c.category }})</span
+                      >
+                      <p class="text-gray-500 text-xs mt-0.5">
+                        {{ c.description }}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section *ngIf="structuredOverview.risks?.length">
+                <h3
+                  class="text-xs font-semibold uppercase tracking-wider text-red-600 mb-2 flex items-center gap-1.5"
+                >
+                  <lucide-icon name="AlertTriangle" class="w-3.5 h-3.5"></lucide-icon>
+                  Risks and Tradeoff Implications
+                </h3>
+                <div class="space-y-2">
+                  <div
+                    *ngFor="let risk of structuredOverview.risks"
+                    class="bg-red-50/60 rounded-lg p-3 border border-red-100 text-xs text-gray-700 leading-relaxed"
+                  >
+                    {{ risk }}
+                  </div>
+                </div>
+              </section>
+
+              <!-- Improvement Opportunities (with Implement buttons) -->
+              <section *ngIf="structuredOverview.improvements?.length">
+                <h3
+                  class="text-xs font-semibold uppercase tracking-wider text-emerald-600 mb-2 flex items-center gap-1.5"
+                >
+                  <lucide-icon name="Zap" class="w-3.5 h-3.5"></lucide-icon>
+                  Improvement Opportunities
+                </h3>
+                <div class="space-y-2">
+                  <div
+                    *ngFor="let imp of structuredOverview.improvements"
+                    class="bg-white rounded-lg p-3 border border-gray-200 flex items-start justify-between gap-3"
+                  >
+                    <div class="flex-1">
+                      <div class="flex items-center gap-2 mb-1">
+                        <span class="font-semibold text-gray-800 text-xs">{{
+                          imp.title
+                        }}</span>
+                        <span
+                          class="inline-block px-1.5 py-0.5 rounded text-[10px] font-bold uppercase"
+                          [ngClass]="{
+                            'bg-red-100 text-red-700': imp.impact === 'high',
+                            'bg-amber-100 text-amber-700':
+                              imp.impact === 'medium',
+                            'bg-gray-100 text-gray-600': imp.impact === 'low',
+                          }"
+                        >
+                          {{ imp.impact }} impact
+                        </span>
+                        <span
+                          class="inline-block px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-50 text-blue-600"
+                        >
+                          {{ imp.category }}
+                        </span>
+                      </div>
+                      <p class="text-gray-500 text-xs">{{ imp.rationale }}</p>
+                    </div>
+                    <button
+                      *ngIf="!imp.implemented"
+                      (click)="implementRecommendation(imp.id)"
+                      class="flex-shrink-0 px-3 py-1.5 text-xs font-medium bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-colors flex items-center gap-1"
+                      [disabled]="isImplementing"
+                    >
+                      <lucide-icon name="Play" class="w-3 h-3"></lucide-icon>
+                      Implement
+                    </button>
+                    <span
+                      *ngIf="imp.implemented"
+                      class="flex-shrink-0 px-3 py-1.5 text-xs font-medium text-emerald-600 bg-emerald-50 rounded-md border border-emerald-200 flex items-center gap-1"
+                    >
+                      <lucide-icon name="Check" class="w-3 h-3"></lucide-icon>
+                      Applied
+                    </span>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
+
+          <!-- Insert Tab Content (Component Panel inline in sidebar) -->
+          <div
+            class="flex-1 flex flex-col overflow-hidden min-h-0"
+            [class.hidden]="isChatCollapsed || activeTab !== 'insert'"
+          >
+            <app-component-panel
+              class="overflow-auto"
+              (componentSelected)="handleComponentSelected($event)"
+            >
+            </app-component-panel>
+          </div>
+
+          <!-- Chat Input (only visible for Chat tab) -->
+          <div
+  class="p-4 flex-shrink-0"
+  [class.hidden]="isChatCollapsed || activeTab !== 'chat'"
+>
+  <!-- BOX -->
+  <div
+    class="border border-[#9ca1aa] rounded-md p-3 flex flex-col gap-2 min-h-[90px] max-h-[160px] hover:border-gray-400 transition"
+  >
+    <!-- 📎 ATTACHMENTS ROW -->
+    <div
+      *ngIf="uploadedFiles.length > 0"
+      class="flex flex-wrap gap-2 max-h-[80px] overflow-visible"
+    >
+      <div
+        *ngFor="let file of uploadedFiles; let i = index"
+        class="relative w-16 h-16 rounded-md border bg-[#F0F1F2] flex items-center justify-center flex-shrink-0"
+        [title]="file.name"
+      >
+        <!-- ✅ Preview OR Icon -->
+        <ng-container *ngIf="file.preview; else fileIcon">
+          <img
+            [src]="file.preview"
+            class="w-full h-full object-cover rounded-md"
+            alt="preview"
+          />
+        </ng-container>
+
+        <!-- ✅ Fallback icon -->
+        <ng-template #fileIcon>
+          <lucide-icon
+            [name]="fileUploadService.getFileIcon(file.name)"
+            class="w-5 h-5 text-gray-500"
+          ></lucide-icon>
+        </ng-template>
+
+        <!-- ❌ Remove button -->
+        <button
+          type="button"
+          (click)="removeFile(i)"
+          class="absolute top-0 right-0 translate-x-1/4 -translate-y-1/4 w-4 h-4 bg-black/70 text-white rounded-full flex items-center justify-center text-[10px] hover:bg-gray-500"
+        >
+          ✕
+        </button>
+      </div>
+    </div>
+
+    <!-- ✍️ TEXTAREA -->
+    <textarea
+      [(ngModel)]="chatInput"
+      (keydown.enter)="handleEnter($event)"
+      (input)="autoResize($event)"
+      (paste)="onPaste($event)"
+      (drop)="onDrop($event)"
+      (dragover)="$event.preventDefault()"
+      placeholder="Ask questions or request changes..."
+      rows="1"
+      class="w-full resize-none text-sm bg-transparent text-foreground placeholder:text-muted-foreground outline-none leading-tight overflow-y-auto"
+    ></textarea>
+
+    <!-- 🔘 BUTTONS -->
+    <div class="flex items-center justify-between">
+      <!-- PLUS -->
+      <button
+        type="button"
+        (click)="openFilePicker()"
+        class="opacity-70 hover:opacity-100"
+      >
+        <img src="/assets/icons/plus.svg" class="w-5 h-5" />
+      </button>
+
+      <!-- SEND -->
+      <button
+        type="button"
+        (click)="sendMessage()"
+        [disabled]="!chatInput.trim() && uploadedFiles.length === 0"
+        class="p-2 rounded-lg hover:bg-gray-100 transition disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        <img src="/assets/icons/send-icon.svg" class="w-5 h-5" />
+      </button>
+    </div>
+  </div>
+</div>
+        </div>
+
+        <!-- Right: Canvas/Diagram Area (takes remaining space) -->
+        <div
+          class="flex-1 flex flex-col bg-card-workspace canvas-bg rounded-sm card-shadow overflow-hidden"
+        >
+          <!-- Canvas Header: Title+Type (left) | Add Diagram + Regenerate + Download (right) -->
+
+          <!-- Canvas Content Area (relative for floating toolbar) -->
+          <div class="flex-1 flex flex-col overflow-hidden relative">
+            <!-- Loading State -->
+            <div
+              *ngIf="showWorkflowProgressPanel"
+              [ngClass]="isLoading
+                ? 'flex-1 flex items-center justify-center min-h-96'
+                : 'absolute inset-0 z-20 flex items-center justify-center bg-white/75 backdrop-blur-sm'"
+            >
+              <div class="w-full max-w-lg rounded-2xl border border-slate-200 bg-white/95 p-6 shadow-xl">
+                <div class="flex items-start justify-between gap-4">
+                  <div>
+                    <h3 class="text-xs font-semibold uppercase tracking-[0.18em] text-sky-600">{{ workflowProgressTitle }}</h3>
+                    <p class="mt-1 text-sm text-slate-500">{{ streamingStatus || 'Preparing workflow...' }}</p>
+                  </div>
+                  <div class="flex h-12 w-12 items-center justify-center rounded-full bg-sky-50 text-sky-600">
+                    <lucide-icon name="Loader2" class="h-6 w-6 animate-spin"></lucide-icon>
+                  </div>
+                </div>
+
+                <div class="mt-5">
+                  <div class="mb-2 flex items-center justify-between text-xs text-slate-500">
+                    <span>Progress</span>
+                    <span>{{ workflowProgressPercent | number:'1.0-0' }}%</span>
+                  </div>
+                  <div class="h-2 w-full overflow-hidden rounded-full bg-slate-100">
+                    <div class="h-full rounded-full bg-gradient-to-r from-[#0044A3] to-[#03BDD4] transition-all duration-300"
+                         [style.width.%]="workflowProgressPercent"></div>
+                  </div>
+                </div>
+
+                <div *ngIf="visibleProgressSteps.length > 0" class="mt-6 space-y-3">
+                  <div *ngFor="let step of visibleProgressSteps"
+                       class="flex items-start gap-3 rounded-xl border px-3 py-3"
+                       [style.borderColor]="step.status === 'warning' ? '#fde68a' : '#e2e8f0'"
+                       [style.background]="step.status === 'warning' ? '#fffbeb' : '#f8fafc'">
+                    <div class="mt-0.5 flex h-7 w-7 items-center justify-center rounded-full"
+                         [style.background]="step.status === 'completed' ? '#dbeafe' : (step.status === 'warning' ? '#fef3c7' : '#e0f2fe')"
+                         [style.color]="step.status === 'completed' ? '#1d4ed8' : (step.status === 'warning' ? '#b45309' : '#0369a1')">
+                      <lucide-icon [name]="step.status === 'completed' ? 'Check' : (step.status === 'warning' ? 'AlertTriangle' : 'Loader2')"
+                                   class="h-4 w-4"
+                                   [class.animate-spin]="step.status === 'active'"></lucide-icon>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                      <p class="text-sm font-medium text-slate-900">{{ prettyStage(step.stage) || step.message }}</p>
+                      <p *ngIf="prettyStage(step.stage) && step.message && step.message !== prettyStage(step.stage)"
+                         class="mt-0.5 text-xs text-slate-500">{{ step.message }}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Error State -->
+            <div
+              *ngIf="!isLoading && errorMessage"
+              class="flex-1 flex items-center justify-center min-h-96"
+            >
+              <div class="text-center max-w-md px-6">
+                <div
+                  class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 mb-4"
+                >
+                  <svg
+                    class="w-8 h-8 text-red-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"
+                    />
+                  </svg>
+                </div>
+                <h3 class="text-lg font-semibold text-foreground mb-2">
+                  Generation Failed
+                </h3>
+                <!-- Preserves newlines + bullet structure when banner
+                     carries structured validation findings.
+                     break-words guards against long entity ids. -->
+                <p class="text-sm text-muted-foreground mb-4 whitespace-pre-line text-left break-words">{{ errorMessage }}</p>
+                <button
+                  (click)="retryGeneration()"
+                  class="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm hover:bg-primary/90 transition-colors"
+                >
+                  Retry
+                </button>
+              </div>
+            </div>
+
+            <!-- v2 MaxGraph Canvas (PRIMARY — Phase 0 cutover) -->
+            <div
+              *ngIf="!isLoading && !errorMessage && canvasType === 'v2-maxgraph'"
+              class="flex-1 flex flex-col p-4 min-h-96 overflow-hidden"
+            >
+              <app-v2-maxgraph-canvas
+                #v2canvas
+                [ir]="layoutIR"
+                [snapshot]="canvasSnapshot"
+                [editable]="true"
+                (dirtyChange)="onCanvasDirty($event)"
+                class="flex-1 min-h-0"
+              ></app-v2-maxgraph-canvas>
+
+              <!-- "Explain this architecture" panel removed — the rich overview
+                   (rationale · patterns · principles · trade-offs) now loads in
+                   the Overview tab on the left when that tab is opened. -->
+            </div>
+
+            <!-- Legacy mxGraph Canvas (greenfield + mutation flows pending cutover) -->
+            <div
+              *ngIf="!isLoading && !errorMessage && canvasType === 'maxgraph'"
+              class="flex-1 p-4 min-h-96 overflow-hidden"
+            >
+              <app-maxgraph-canvas
+                #maxgraphCanvas
+                [diagramData]="diagramData"
+                (diagramChanged)="handleDiagramChanged($event)"
+              ></app-maxgraph-canvas>
+            </div>
+
+            <!-- Mermaid Canvas -->
+            <div
+              *ngIf="!isLoading && !errorMessage && canvasType === 'mermaid'"
+              class="flex-1 p-4 min-h-96 overflow-hidden"
+            >
+              <app-mermaid-canvas
+                #mermaidCanvas
+                [diagramData]="diagramCode || diagramData"
+              ></app-mermaid-canvas>
+            </div>
+
+            <!-- Floating Zoom Toolbar (bottom center) -->
+            <div
+              *ngIf="!isLoading && !errorMessage"
+              class="absolute bottom-5 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1 px-3 py-2 rounded-xl bg-white/90 backdrop-blur-sm shadow-lg border border-gray-200/60"
+            >
+              <button
+                (click)="undoCanvas()"
+                title="Undo"
+                *ngIf="canvasType === 'maxgraph'"
+                class="p-2 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <lucide-icon name="Undo2" class="w-4 h-4"></lucide-icon>
+              </button>
+              <button
+                (click)="redoCanvas()"
+                title="Redo"
+                *ngIf="canvasType === 'maxgraph'"
+                class="p-2 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <lucide-icon name="Redo2" class="w-4 h-4"></lucide-icon>
+              </button>
+              <div
+                class="w-px h-5 bg-gray-200 mx-1"
+                *ngIf="canvasType === 'maxgraph'"
+              ></div>
+              <button
+                (click)="zoomIn()"
+                title="Zoom In"
+                class="p-2 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <lucide-icon name="ZoomIn" class="w-4 h-4"></lucide-icon>
+              </button>
+              <button
+                (click)="zoomOut()"
+                title="Zoom Out"
+                class="p-2 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <lucide-icon name="ZoomOut" class="w-4 h-4"></lucide-icon>
+              </button>
+              <button
+                (click)="resetZoom()"
+                title="Fit to Screen"
+                class="p-2 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <lucide-icon name="Maximize2" class="w-4 h-4"></lucide-icon>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Requirements Analyzer Dialog -->
+  <app-requirements-analyzer *ngIf="showDiscoveryDialog"
+    [isOpen]="true"
+    [prompt]="originalPrompt || prompt"
+    [diagramType]="diagramType?.value"
+    [preset]="preset || undefined"
+    [cloudProvider]="preset || undefined"
+    [attachedDocuments]="getAttachmentContext()?.attachments"
+    [preloadedQuestions]="preloadedIntakeQuestions"
+    [workspaceId]="workspaceId"
+    [initialIntakeArtifactId]="pendingIntakeArtifactId"
+    (proceed)="onDiscoveryComplete($event)"
+    (closed)="onDiscoveryClosed()"
+  ></app-requirements-analyzer>
+</div>

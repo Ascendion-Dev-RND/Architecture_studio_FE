@@ -1,0 +1,351 @@
+<div class="min-h-screen gradient-hero">
+  <app-breadcrumb [items]="breadcrumbItems" />
+  
+  <!-- Navbar -->
+  <nav class="fixed top-0 left-0 right-0 z-50 bg-transparent">
+    <div class="container mx-auto px-6 py-4 flex items-center justify-between">
+      <a routerLink="/" class="flex items-center gap-2">
+        <span class="text-lg font-medium tracking-wide bg-gradient-to-r from-coral to-coral-light bg-clip-text text-transparent">
+          Architecture-Studio
+        </span>
+      </a>
+    </div>
+  </nav>
+
+  <!-- Hidden File Attachment -->
+  <app-file-attachment
+    #fileAttachment
+    class="hidden"
+    [multiple]="true"
+    [showDropZone]="false"
+    [context]="'all'"
+    [maxFiles]="5"
+    (filesChanged)="onFilesChanged($event)"
+    (contextBuilt)="onContextBuilt($event)"
+  ></app-file-attachment>
+
+  <main class="pt-32 pb-20 px-6">
+    <div class="container mx-auto max-w-4xl text-center">
+
+      <!-- Title -->
+      <h1 class="mb-4"
+        style="background: linear-gradient(150deg, #0044A3 45.68%, #03BDD4 60.03%);
+               background-clip: text;
+               -webkit-background-clip: text;
+               -webkit-text-fill-color: transparent;
+               text-align: center;
+               font-family: 'Mulish', sans-serif;
+               font-size: 64px;
+               font-weight: 500;
+               line-height: 75px;">
+        Architecture Assessment
+      </h1>
+
+      <!-- Subtitle -->
+      <p class="mb-12 max-w-2xl mx-auto"
+        style="color: #64748B;
+               text-align: center;
+               font-family: 'Mulish', sans-serif;
+               font-size: 24px;
+               font-weight: 400;
+               line-height: 28px;">
+        Review, validate, and assess architecture for risks, NFRs, TOGAF and best-practices
+      </p>
+
+      <!-- Card -->
+      <div class="bg-card rounded-2xl p-8 card-shadow max-w-3xl mx-auto">
+
+        <!-- Input -->
+        <div class="mb-4">
+          <input
+            type="text"
+            [(ngModel)]="input"
+            (keyup.enter)="handleSend()"
+            placeholder="Describe your architecture for assessment..."
+            class="w-full bg-transparent text-foreground placeholder:text-muted-foreground text-lg outline-none"
+          />
+        </div>
+
+        <!-- ✅ FILE CHIPS -->
+        <div *ngIf="uploadedFiles.length > 0"
+             class="mb-4 flex flex-wrap gap-2">
+
+          <div
+            *ngFor="let file of uploadedFiles; let i = index"
+            class="flex items-center gap-2 px-3 py-1 bg-primary/10 rounded-full text-sm"
+          >
+            <lucide-icon name="FileText" class="w-3 h-3"></lucide-icon>
+
+            <span class="max-w-[120px] truncate">
+              {{ file.name }}
+            </span>
+
+            <button
+              type="button"
+              (click)="removeFile(i)"
+              class="ml-1 text-gray-500 hover:text-red-500"
+            >
+              <lucide-icon name="X" class="w-3 h-3"></lucide-icon>
+            </button>
+          </div>
+        </div>
+
+        <!-- Buttons Row -->
+        <div class="flex items-center justify-between">
+
+          <!-- LEFT: Attachment -->
+          <div class="flex items-center gap-3">
+
+            <div class="relative">
+
+              <!-- 📎 Button -->
+              <button 
+                type="button"
+                (click)="toggleAttachmentPanel()"
+                [class.text-primary]="uploadedFiles.length > 0"
+                class="p-2 text-muted-foreground hover:text-foreground transition-colors relative"
+              >
+                <lucide-icon name="Paperclip" class="w-5 h-5"></lucide-icon>
+
+                <span *ngIf="uploadedFiles.length > 0"
+                      class="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full text-[10px] flex items-center justify-center text-white">
+                  {{ uploadedFiles.length }}
+                </span>
+              </button>
+
+              <!-- ✅ Dropdown -->
+              <div
+                *ngIf="showAttachmentPanel"
+                class="absolute top-full mt-2 w-72 bg-card rounded-lg card-shadow border border-border/50 py-2 z-50"
+              >
+                <button
+                  (click)="openFilePicker()"
+                  class="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100"
+                >
+                  <lucide-icon name="FileUp" class="w-4 h-4"></lucide-icon>
+                  Upload files
+                </button>
+              </div>
+
+            </div>
+
+          </div>
+
+          <!-- RIGHT: Actions -->
+          <div class="flex items-center gap-3">
+
+            <button
+              (click)="handleEnhance()"
+              class="p-2 text-muted-foreground hover:text-amber-500 transition-colors"
+            >
+              <lucide-icon name="Wand" class="w-5 h-5"></lucide-icon>
+            </button>
+
+            <button
+              (click)="handleSend()"
+              class="p-2 text-muted-foreground hover:text-primary transition-colors"
+            >
+              <lucide-icon name="Send" class="w-5 h-5"></lucide-icon>
+            </button>
+
+          </div>
+        </div>
+
+      </div>
+      <div class="mt-16 max-w-5xl mx-auto">
+        <div style="display: flex; padding: 24px; flex-direction: column; justify-content: center; align-items: center; gap: 24px; align-self: stretch; border-radius: 12px; background: rgba(255, 255, 255, 0.60); box-shadow: 0 2px 4px 0 #D1D3D8; backdrop-filter: blur(10px);">
+          <div class="flex items-center gap-1 p-1 rounded-full w-fit" style="background: rgba(226, 232, 240, 0.6);">
+            <button type="button" (click)="activeTab = 'recent'" [class.bg-white]="activeTab === 'recent'" [class.shadow-sm]="activeTab === 'recent'" class="px-6 py-2 rounded-full text-sm font-medium transition-all" [style.color]="activeTab === 'recent' ? '#1D4ED8' : '#616874'" style="font-family: 'Inter', sans-serif;">
+              <lucide-icon name="Clock" class="w-4 h-4 inline-block mr-2"></lucide-icon>
+              Recent
+            </button>
+            <button type="button" (click)="activeTab = 'all'" [class.bg-white]="activeTab === 'all'" [class.shadow-sm]="activeTab === 'all'" class="px-6 py-2 rounded-full text-sm font-medium transition-all" [style.color]="activeTab === 'all' ? '#1D4ED8' : '#616874'" style="font-family: 'Inter', sans-serif;">
+              <lucide-icon name="Grid2X2" class="w-4 h-4 inline-block mr-2"></lucide-icon>
+              All projects
+            </button>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
+            <div *ngFor="let project of getFilteredProjects()" style="display: flex; padding: 12px; flex-direction: column; align-items: center; gap: 24px; flex: 1 0 0; border-radius: 12px; border: 2px solid #FFF; background: #FDFDFD; cursor: pointer;" class="hover:shadow-md transition-all">
+              <div class="w-12 h-12 flex items-center justify-center" style="background: linear-gradient(135deg, #0044A3 0%, #03BDD4 100%); border-radius: 8px;">
+                <lucide-icon name="Shield" class="w-6 h-6" style="color: white;"></lucide-icon>
+              </div>
+              <div class="mb-3 w-full">
+                <div class="flex items-start justify-between mb-2">
+                  <h3 class="text-lg font-semibold flex-1" style="color: #3B3F46; font-family: 'Mulish', sans-serif;">{{ project.title }}</h3>
+                  <span *ngIf="project.isNew" class="px-2 py-1 text-xs font-medium rounded" style="background: #E0F2FE; color: #0369A1;">New</span>
+                </div>
+                <p class="text-sm line-clamp-2" style="color: #616874; font-family: 'Inter', sans-serif;">{{ project.description }}</p>
+              </div>
+              <div class="flex items-center justify-between text-xs w-full" style="color: #616874;">
+                <span style="font-family: 'Inter', sans-serif;">By {{ project.author }}</span>
+                <span style="font-family: 'Inter', sans-serif;">{{ project.timestamp }}</span>
+              </div>
+            </div>
+            <button type="button" style="display: flex; padding: 12px; flex-direction: column; align-items: center; justify-content: center; gap: 24px; flex: 1 0 0; border-radius: 12px; border: 2px dashed #E2E8F0; background: #FDFDFD; min-height: 200px; cursor: pointer;" class="hover:border-slate-300 hover:shadow-md transition-all">
+              <lucide-icon name="Plus" class="w-8 h-8" style="color: #616874;"></lucide-icon>
+              <span class="text-sm font-medium" style="color: #616874; font-family: 'Inter', sans-serif;">New</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Information Section -->
+      <div class="mt-20 text-left max-w-5xl mx-auto">
+        <!-- Features Grid -->
+        <div class="grid md:grid-cols-3 gap-6 mb-16">
+          <div class="bg-card rounded-xl p-6 card-shadow">
+            <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
+              <lucide-icon name="Shield" class="w-6 h-6 text-primary"></lucide-icon>
+            </div>
+            <h3 class="text-xl font-semibold mb-3 text-foreground">Comprehensive Analysis</h3>
+            <p class="text-muted-foreground">
+              Deep analysis covering security, scalability, reliability, performance, and maintainability aspects.
+            </p>
+          </div>
+
+          <div class="bg-card rounded-xl p-6 card-shadow">
+            <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
+              <lucide-icon name="FileCheck" class="w-6 h-6 text-primary"></lucide-icon>
+            </div>
+            <h3 class="text-xl font-semibold mb-3 text-foreground">TOGAF & Best Practices</h3>
+            <p class="text-muted-foreground">
+              Evaluate against TOGAF framework, industry standards, and architectural best practices.
+            </p>
+          </div>
+
+          <div class="bg-card rounded-xl p-6 card-shadow">
+            <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
+              <lucide-icon name="AlertTriangle" class="w-6 h-6 text-primary"></lucide-icon>
+            </div>
+            <h3 class="text-xl font-semibold mb-3 text-foreground">Risk Identification</h3>
+            <p class="text-muted-foreground">
+              Identify potential risks, vulnerabilities, and areas requiring improvement with actionable recommendations.
+            </p>
+          </div>
+        </div>
+
+        <!-- Assessment Criteria -->
+        <div class="bg-card rounded-xl p-8 card-shadow mb-16">
+          <h2 class="text-2xl font-bold mb-6 text-foreground flex items-center gap-3">
+            <lucide-icon name="ClipboardCheck" class="w-6 h-6 text-primary"></lucide-icon>
+            Assessment Criteria
+          </h2>
+          <div class="grid md:grid-cols-2 gap-6">
+            <div>
+              <h4 class="font-semibold text-foreground mb-3 flex items-center gap-2">
+                <lucide-icon name="Lock" class="w-4 h-4 text-primary"></lucide-icon>
+                Security & Compliance
+              </h4>
+              <ul class="space-y-2 text-sm text-muted-foreground">
+                <li class="flex items-start gap-2">
+                  <span class="text-primary mt-1">•</span>
+                  <span>Authentication & authorization mechanisms</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <span class="text-primary mt-1">•</span>
+                  <span>Data encryption and protection</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <span class="text-primary mt-1">•</span>
+                  <span>Compliance with regulatory standards</span>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h4 class="font-semibold text-foreground mb-3 flex items-center gap-2">
+                <lucide-icon name="TrendingUp" class="w-4 h-4 text-primary"></lucide-icon>
+                Scalability & Performance
+              </h4>
+              <ul class="space-y-2 text-sm text-muted-foreground">
+                <li class="flex items-start gap-2">
+                  <span class="text-primary mt-1">•</span>
+                  <span>Horizontal and vertical scaling strategies</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <span class="text-primary mt-1">•</span>
+                  <span>Load balancing and caching mechanisms</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <span class="text-primary mt-1">•</span>
+                  <span>Performance bottleneck identification</span>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h4 class="font-semibold text-foreground mb-3 flex items-center gap-2">
+                <lucide-icon name="Heart" class="w-4 h-4 text-primary"></lucide-icon>
+                Reliability & Resilience
+              </h4>
+              <ul class="space-y-2 text-sm text-muted-foreground">
+                <li class="flex items-start gap-2">
+                  <span class="text-primary mt-1">•</span>
+                  <span>Fault tolerance and error handling</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <span class="text-primary mt-1">•</span>
+                  <span>Disaster recovery and backup strategies</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <span class="text-primary mt-1">•</span>
+                  <span>High availability configurations</span>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h4 class="font-semibold text-foreground mb-3 flex items-center gap-2">
+                <lucide-icon name="Wrench" class="w-4 h-4 text-primary"></lucide-icon>
+                Maintainability & Extensibility
+              </h4>
+              <ul class="space-y-2 text-sm text-muted-foreground">
+                <li class="flex items-start gap-2">
+                  <span class="text-primary mt-1">•</span>
+                  <span>Code modularity and separation of concerns</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <span class="text-primary mt-1">•</span>
+                  <span>Documentation and knowledge transfer</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <span class="text-primary mt-1">•</span>
+                  <span>Technical debt assessment</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- How It Works -->
+        <div class="bg-card rounded-xl p-8 card-shadow">
+          <h2 class="text-2xl font-bold mb-6 text-foreground flex items-center gap-3">
+            <lucide-icon name="HelpCircle" class="w-6 h-6 text-primary"></lucide-icon>
+            How Assessment Works
+          </h2>
+          <div class="space-y-4">
+            <div class="flex gap-4">
+              <div class="flex-shrink-0 w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center text-primary font-semibold">1</div>
+              <div>
+                <h4 class="font-semibold text-foreground mb-1">Upload Architecture</h4>
+                <p class="text-muted-foreground">Provide your architecture diagrams, documentation, or describe your system architecture.</p>
+              </div>
+            </div>
+            <div class="flex gap-4">
+              <div class="flex-shrink-0 w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center text-primary font-semibold">2</div>
+              <div>
+                <h4 class="font-semibold text-foreground mb-1">Select Assessment Options</h4>
+                <p class="text-muted-foreground">Choose specific areas to focus on or perform a comprehensive assessment across all criteria.</p>
+              </div>
+            </div>
+            <div class="flex gap-4">
+              <div class="flex-shrink-0 w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center text-primary font-semibold">3</div>
+              <div>
+                <h4 class="font-semibold text-foreground mb-1">Review Detailed Report</h4>
+                <p class="text-muted-foreground">Receive a comprehensive report with findings, risk ratings, and actionable recommendations for improvement.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
