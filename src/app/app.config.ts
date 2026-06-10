@@ -138,7 +138,9 @@ import {
   Undo2,
   Redo2,
   PlusCircle,
-  ServerCog
+  ServerCog,
+  PanelLeftClose,
+  RotateCcw
 } from "lucide-angular";
 
 /**
@@ -294,7 +296,9 @@ export const appConfig: ApplicationConfig = {
         Undo2,
         Redo2,
         PlusCircle,
-        ServerCog
+        ServerCog,
+        PanelLeftClose,
+        RotateCcw
       })
     ),
   ],
