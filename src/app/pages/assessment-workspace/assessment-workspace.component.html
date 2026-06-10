@@ -1,12 +1,14 @@
 <div class="min-h-screen gradient-hero">
   <!-- Breadcrumb Navigation -->
   <app-breadcrumb [items]="breadcrumbItems" />
-  
+
   <!-- Navigation -->
-  <nav class="fixed top-0 left-0 right-0 z-50 gradient-lavender bg-background/80 backdrop-blur-md border-0 border-border/50">
+  <nav
+    class="fixed top-0 left-0 right-0 z-50 gradient-lavender bg-background/80 backdrop-blur-md border-0 border-border/50">
     <div class="container mx-auto px-6 py-4 flex items-center justify-between">
       <a routerLink="/" class="flex items-center gap-2">
-        <span class="text-lg font-medium tracking-wide bg-gradient-to-r from-coral to-coral-light bg-clip-text text-transparent">
+        <span
+          class="text-lg font-medium tracking-wide bg-gradient-to-r from-coral to-coral-light bg-clip-text text-transparent">
           Architecture-Studio
         </span>
       </a>
@@ -14,77 +16,191 @@
   </nav>
 
   <!-- Main Content -->
-  <main class="pt-20 h-screen flex flex-col">
-    <div class="container mx-auto max-w-8xl flex-1 flex flex-col px-4 overflow-hidden">
-      <div class="flex-1 flex gap-4 overflow-hidden">
-        <!-- Left: Chat Panel (Collapsible) -->
-        <div 
-          class="flex flex-col bg-card rounded-2xl card-shadow overflow-hidden transition-all duration-300"
-          [class.w-96]="!isChatCollapsed"
-          [class.w-16]="isChatCollapsed">
-          
-          <!-- Chat Header -->
-          <div class="border-b border-border/50 flex-shrink-0">
-            <div class="flex items-center justify-between p-4" [class.hidden]="isChatCollapsed">
-              <div class="flex items-center gap-2">
-                <lucide-icon name="MessageSquare" class="w-5 h-5 text-primary"></lucide-icon>
-                <h2 class="font-semibold text-foreground">Assessment Assistant</h2>
-              </div>
-              <button
-                type="button"
-                (click)="toggleChat()"
-                class="p-2 text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-lg transition-colors"
-                title="Collapse Panel">
-                <lucide-icon name="ChevronLeft" class="w-5 h-5"></lucide-icon>
-              </button>
-            </div>
-            
-            <!-- Collapsed state button -->
-            <div class="flex flex-col items-center py-4" [class.hidden]="!isChatCollapsed">
-              <button
-                type="button"
-                (click)="toggleChat()"
-                class="p-2 text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-lg transition-colors"
-                title="Expand Chat">
-                <lucide-icon name="ChevronRight" class="w-5 h-5"></lucide-icon>
-              </button>
-            </div>
-          </div>
+   <!-- Main Content Area -->
+  <main class="pt-2 h-screen flex flex-col">
+    <!-- ========================================= -->
+    <!-- HEADER ROW -->
+    <!-- ========================================= -->
+    <div
+      class="px-6 grid grid-cols-[auto_1fr] gap-4 items-center container max-w-none"
+    >
+      <!-- LEFT -->
+      <div class="flex items-center">
+        <button
+          (click)="toggleChat()"
+          class="shadow-sm rounded-md hover:bg-gray-100 transition pb-2"
+        >
+          <img
+            src="assets/icons/panel-left-close.svg"
+            alt="toggle panel"
+            class="w-4 h-4 object-contain"
+          />
+        </button>
+      </div>
 
-          <!-- Chat Content (when expanded) -->
-          <div *ngIf="!isChatCollapsed" class="flex-1 flex flex-col overflow-hidden">
-            <!-- Messages -->
-            <div class="flex-1 overflow-y-auto p-4 space-y-4">
-              <div *ngFor="let msg of chatMessages" 
-                [ngClass]="{
-                  'flex justify-end': msg.role === 'user',
-                  'flex justify-start': msg.role === 'assistant'
-                }">
+      <!-- RIGHT -->
+      <div class="flex items-center justify-between pr-2">
+        <!-- Canvas Header Actions -->
+      </div>
+    </div>
+
+    <!-- ========================================= -->
+    <!-- WORKSPACE -->
+    <!-- ========================================= -->
+    <div
+      class="px-6 pb-6 container max-w-none mx-auto max-w-8xl flex-1 flex flex-col overflow-hidden"
+    >
+      <div
+        class="flex-1 flex overflow-hidden transition-all duration-300"
+        [class.gap-4]="!isChatCollapsed"
+        [class.gap-0]="isChatCollapsed"
+      >
+        <!-- ========================================= -->
+        <!-- LEFT CHAT PANEL -->
+        <!-- ========================================= -->
+        <div
+          class="flex flex-col bg-card-workspace rounded-sm card-shadow transition-all duration-300 overflow-hidden flex-shrink-0"
+          [class.w-96]="!isChatCollapsed"
+          [class.w-0]="isChatCollapsed"
+          [class.opacity-100]="!isChatCollapsed"
+          [class.opacity-0]="isChatCollapsed"
+        >
+          <!-- CHAT CONTENT -->
+          <div
+            #chatScroll
+            class="flex-1 p-4 overflow-y-auto space-y-3 min-h-0"
+            [class.hidden]="isChatCollapsed || activeTab !== 'chat'"
+          >
+            <!-- CHAT MESSAGES -->
+            <div *ngFor="let msg of chatMessages" class="mb-4">
+              <!-- USER MESSAGE -->
+              <div
+                *ngIf="msg.role === 'user'"
+                class="flex gap-3 flex-row-reverse"
+              >
+                <div class="flex-1">
+                  <div
+                    class="p-3 max-w-[85%] text-sm rounded-2xl bg-[#0044A3] text-white rounded-br-none ml-auto"
+                  >
+                    <p class="text-sm">
+                      {{ msg.content }}
+                    </p>
+                  </div>
+
+                  <p class="text-xs text-muted-foreground mt-1 text-right">
+                    {{ msg.timestamp | date: "shortTime" }}
+                  </p>
+                </div>
+              </div>
+
+              <!-- ASSISTANT MESSAGE -->
+              <div *ngIf="msg.role === 'assistant'" class="flex gap-3">
+                <!-- Robot Avatar -->
                 <div
-                  [ngClass]="{
-                    'bg-primary text-white': msg.role === 'user',
-                    'bg-secondary text-foreground': msg.role === 'assistant'
-                  }"
-                  class="max-w-[85%] px-4 py-2 rounded-2xl text-sm">
-                  {{ msg.content }}
+                  class="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center"
+                >
+                  <lucide-icon
+                    name="Bot"
+                    class="w-4 h-4 text-blue-600"
+                  ></lucide-icon>
+                </div>
+
+                <div class="flex-1">
+                  <div
+                    class="p-3 max-w-[85%] text-sm rounded-2xl bg-[#E6F3FF] text-foreground rounded-tl-none"
+                  >
+                    <p class="text-sm">
+                      {{ msg.content }}
+                    </p>
+                  </div>
+
+                  <p class="text-xs text-muted-foreground mt-1">
+                    {{ msg.timestamp | date: "shortTime" }}
+                  </p>
                 </div>
               </div>
             </div>
+          </div>
 
-            <!-- Input Area -->
-            <div class="border-t border-border p-4 flex-shrink-0">
-              <div class="flex gap-2">
-                <input
-                  [(ngModel)]="userInput"
-                  (keyup.enter)="sendMessage()"
-                  type="text"
-                  placeholder="Ask about specific assessment areas..."
-                  class="flex-1 px-4 py-2 bg-background border border-border rounded-lg text-foreground text-sm focus:outline-none focus:border-primary transition-colors">
+          <!-- CHAT INPUT -->
+          <div
+            class="p-4 flex-shrink-0"
+            [class.hidden]="isChatCollapsed || activeTab !== 'chat'"
+          >
+            <!-- INPUT BOX -->
+            <div
+              class="border border-[#9ca1aa] rounded-md p-3 flex flex-col gap-2 min-h-[90px] max-h-[160px] hover:border-gray-400 transition"
+            >
+              <!-- ATTACHMENTS -->
+              <div
+                *ngIf="uploadedFiles.length > 0"
+                class="flex flex-wrap gap-2 max-h-[80px] overflow-visible"
+              >
+                <div
+                  *ngFor="let file of uploadedFiles; let i = index"
+                  class="relative w-16 h-16 rounded-md border bg-[#F0F1F2] flex items-center justify-center flex-shrink-0"
+                  [title]="file.name"
+                >
+                  <!-- IMAGE PREVIEW -->
+                  <ng-container *ngIf="file.preview; else fileIcon">
+                    <img
+                      [src]="file.preview"
+                      class="w-full h-full object-cover rounded-md"
+                      alt="preview"
+                    />
+                  </ng-container>
+
+                  <!-- FILE ICON -->
+                  <ng-template #fileIcon>
+                    <lucide-icon
+                      [name]="fileUploadService.getFileIcon(file.name)"
+                      class="w-5 h-5 text-gray-500"
+                    ></lucide-icon>
+                  </ng-template>
+
+                  <!-- REMOVE -->
+                  <button
+                    type="button"
+                    (click)="removeFile(i)"
+                    class="absolute top-0 right-0 translate-x-1/4 -translate-y-1/4 w-4 h-4 bg-black/70 text-white rounded-full flex items-center justify-center text-[10px] hover:bg-gray-500"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+
+              <!-- TEXTAREA -->
+              <textarea
+                [(ngModel)]="userInput"
+                (keydown.enter)="handleEnter($event)"
+                (input)="autoResize($event)"
+                (paste)="onPaste($event)"
+                (drop)="onDrop($event)"
+                (dragover)="$event.preventDefault()"
+                placeholder="Ask questions or request changes..."
+                rows="1"
+                class="w-full resize-none text-sm bg-transparent text-foreground placeholder:text-muted-foreground outline-none leading-tight overflow-y-auto"
+              ></textarea>
+
+              <!-- ACTIONS -->
+              <div class="flex items-center justify-between">
+                <!-- ATTACH -->
                 <button
+                  type="button"
+                  (click)="openFilePicker()"
+                  class="opacity-70 hover:opacity-100"
+                >
+                  <img src="/assets/icons/plus.svg" class="w-5 h-5" />
+                </button>
+
+                <!-- SEND -->
+                <button
+                  type="button"
                   (click)="sendMessage()"
-                  [disabled]="!userInput.trim()"
-                  class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
-                  <lucide-icon name="Send" class="w-4 h-4"></lucide-icon>
+                  [disabled]="!userInput.trim() && uploadedFiles.length === 0"
+                  class="p-2 rounded-lg hover:bg-gray-100 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <img src="/assets/icons/send-icon.svg" class="w-5 h-5" />
                 </button>
               </div>
             </div>
@@ -99,15 +215,15 @@
               <lucide-icon name="ClipboardCheck" class="w-5 h-5 text-primary"></lucide-icon>
               <h2 class="font-semibold text-foreground">Architecture Assessment</h2>
             </div>
-            <button
+            <!-- <button
               (click)="viewReport()"
               class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors text-sm">
               View Full Report
-            </button>
+            </button> -->
           </div>
 
           <!-- Preview Content -->
-          <div class="flex-1 overflow-y-auto p-6">
+          <!-- <div class="flex-1 overflow-y-auto p-6">
             <div class="prose prose-sm max-w-none">
               <h2>Assessment Overview</h2>
               <p class="text-muted-foreground">
@@ -160,9 +276,705 @@
                 Use the chat on the left to request specific assessment focus areas or clarifications.
               </p>
             </div>
+          </div> -->
+          <div class="flex-1 overflow-y-auto p-6">
+
+            <section class=" glass-panel rounded-2xl p-8 mb-8 border-primary/20 shadow-xl overflow-hidden relative">
+              <div class="absolute top-0 right-0 p-8 opacity-10">
+
+              </div>
+              <div class="flex flex-col md:flex-row items-center gap-12">
+                <div class="flex flex-col items-center">
+                  <div class="health-gauge-large">
+                    <div class="health-text flex flex-col items-center">
+                      <span class="text-4xl font-black text-primary">84%</span>
+                      <span class="text-[11px] font-bold txt-gray tracking-widest">SYSTEM HEALTH</span>
+                    </div>
+                  </div>
+                  <div class="mt-4 flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                    <span class="text-xs font-bold text-green-700">STRATEGIC ALIGNMENT: STRONG</span>
+                  </div>
+                </div>
+                <div class="flex-1 grid grid-cols-2 lg:grid-cols-4 gap-4 w-full">
+                  <div class="p-5 bg-white/50 rounded-xl border border-white/80 shadow-sm">
+                    <p class="text-[10px] font-bold txt-gray uppercase tracking-widest">Maturity Level</p>
+                    <p class="text-3xl font-black text-primary mt-1">L4</p>
+                    <p class="text-xs txt-gray mt-1">Managed &amp; Predictable</p>
+                  </div>
+                  <div class="p-5 bg-white/50 rounded-xl border border-white/80 shadow-sm">
+                    <p class="text-[10px] font-bold txt-gray uppercase tracking-widest">Open Risks</p>
+                    <p class="text-3xl font-black text-error mt-1">12</p>
+                    <p class="text-xs text-error font-medium mt-1">3 Critical Gaps</p>
+                  </div>
+                  <div class="p-5 bg-white/50 rounded-xl border border-white/80 shadow-sm">
+                    <p class="text-[10px] font-bold txt-gray uppercase tracking-widest">Compliance</p>
+                    <p class="text-3xl font-black text-primary mt-1">92%</p>
+                    <p class="text-xs txt-gray mt-1">Regulatory Standards</p>
+                  </div>
+                  <div class="p-5 bg-white/50 rounded-xl border border-white/80 shadow-sm">
+                    <p class="text-[10px] font-bold txt-gray uppercase tracking-widest">Cost Efficiency</p>
+                    <p class="text-3xl font-black text-primary mt-1">A+</p>
+                    <p class="text-xs txt-gray mt-1">Optimized Resources</p>
+                  </div>
+                </div>
+              </div>
+            </section>
+            <!-- Assessment Sections -->
+            <div class="space-y-8">
+              <!-- 1. Executive Summary -->
+              <section class="glass-panel rounded-2xl p-8 shadow-sm">
+                <div class="flex items-center justify-between mb-6">
+                  <div class="flex items-center gap-3">
+                    <h3 class="text-2xl font-black tracking-tight">01. Executive Summary</h3>
+                  </div>
+                  <span class="text-[10px] font-bold txt-gray uppercase">Draft v2.4</span>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  <div class="space-y-4">
+                    <div>
+                      <h4 class="text-xs font-black txt-gray uppercase mb-2">Purpose &amp; Scope</h4>
+                      <p class="text-sm text-on-surface-variant leading-relaxed">Evaluation of the Enterprise
+                        Order Management System (EOMS) to ensure readiness for the 2025 high-traffic cycle and
+                        regional expansion into APAC.</p>
+                    </div>
+                    <div>
+                      <h4 class="text-xs font-black txt-gray uppercase mb-2">Key Findings</h4>
+                      <p class="text-sm text-on-surface-variant leading-relaxed italic">"Architecture is robust
+                        but suffers from synchronous bottlenecking in core transactional flows."</p>
+                    </div>
+                  </div>
+                  <div class="p-6 bg-surface rounded-xl border border-outline-variant/30 space-y-4">
+                    <h4 class="text-xs font-black txt-gray uppercase">TO-BE Vision</h4>
+                    <p class="text-sm font-medium leading-relaxed">Transition to a fully asynchronous Event-Driven
+                      Mesh utilizing Kafka for cross-domain orchestration, reducing global p99 latency to
+                      &lt;200ms.</p>
+                    <div class="flex gap-2 pt-2">
+                      <button class="px-3 py-1 bg-primary text-white text-[10px] font-bold rounded-full">VIEW
+                        ROADMAP</button>
+                    </div>
+                  </div>
+                </div>
+              </section>
+              <!-- 2. Assessment Scope -->
+              <section class="glass-panel rounded-2xl p-8 shadow-sm">
+                <div class="flex items-center gap-3 mb-6">
+                  <h3 class="text-2xl font-black tracking-tight">02. Assessment Scope</h3>
+                </div>
+                <div class="grid grid-cols-3 gap-6">
+                  <div class="p-4 border border-outline-variant/30 rounded-xl">
+                    <h5 class="text-xs font-bold mb-3">Architectural Domains</h5>
+                    <ul class="text-xs space-y-2 txt-gray">
+                      <li class="flex items-center gap-2"><span
+                          class="w-1 h-1 bg-primary rounded-full"></span>Application &amp; Integration</li>
+                      <li class="flex items-center gap-2"><span class="w-1 h-1 bg-primary rounded-full"></span>Data
+                        &amp; Analytics</li>
+                      <li class="flex items-center gap-2"><span class="w-1 h-1 bg-primary rounded-full"></span>Security
+                        &amp; Infra</li>
+                    </ul>
+                  </div>
+                  <div class="p-4 border border-outline-variant/30 rounded-xl">
+                    <h5 class="text-xs font-bold mb-3">Artifacts Reviewed</h5>
+                    <ul class="text-xs space-y-2 txt-gray">
+                      <li class="flex items-center gap-2"><span class="w-1 h-1 bg-primary rounded-full"></span>42
+                        ADRs (Decision Records)</li>
+                      <li class="flex items-center gap-2"><span class="w-1 h-1 bg-primary rounded-full"></span>C4
+                        Context Diagrams</li>
+                      <li class="flex items-center gap-2"><span class="w-1 h-1 bg-primary rounded-full"></span>K8s
+                        Manifests</li>
+                    </ul>
+                  </div>
+                  <div class="p-4 border border-outline-variant/30 rounded-xl">
+                    <h5 class="text-xs font-bold mb-3">Excluded</h5>
+                    <ul class="text-xs space-y-2 txt-gray">
+                      <li class="flex items-center gap-2"><span class="w-1 h-1 bg-error rounded-full"></span>Legacy
+                        Mainframe Proxy</li>
+                      <li class="flex items-center gap-2"><span class="w-1 h-1 bg-error rounded-full"></span>Client-side
+                        UI Assets</li>
+                    </ul>
+                  </div>
+                </div>
+              </section>
+              <!-- 3. Business & System Context -->
+              <section class="glass-panel rounded-2xl p-8 shadow-sm">
+                <div class="flex items-center gap-3 mb-6">
+                  <h3 class="text-2xl font-black tracking-tight">03. Business &amp; System Context</h3>
+                </div>
+                <div class="flex flex-col gap-6">
+                  <div class="grid grid-cols-2 gap-8">
+                    <div>
+                      <h4 class="text-xs font-bold txt-gray uppercase mb-3">Core Capabilities</h4>
+                      <div class="flex flex-wrap gap-2">
+                        <span
+                          class="px-3 py-1.5 bg-white border border-outline-variant/50 rounded-lg text-xs font-medium">Order
+                          Orchestration</span>
+                        <span
+                          class="px-3 py-1.5 bg-white border border-outline-variant/50 rounded-lg text-xs font-medium">Inventory
+                          Synch</span>
+                        <span
+                          class="px-3 py-1.5 bg-white border border-outline-variant/50 rounded-lg text-xs font-medium">Multi-Currency
+                          Checkout</span>
+                      </div>
+                    </div>
+                    <div>
+                      <h4 class="text-xs font-bold txt-gray uppercase mb-3">Key Stakeholders</h4>
+                      <div class="flex -space-x-2">
+                        <div
+                          class="w-8 h-8 rounded-full bg-blue-500 border-2 border-white flex items-center justify-center text-[10px] text-white font-bold"
+                          title="Product Owner">PO</div>
+                        <div
+                          class="w-8 h-8 rounded-full bg-green-500 border-2 border-white flex items-center justify-center text-[10px] text-white font-bold"
+                          title="CTO">CT</div>
+                        <div
+                          class="w-8 h-8 rounded-full bg-amber-500 border-2 border-white flex items-center justify-center text-[10px] text-white font-bold"
+                          title="SecOps">SO</div>
+                        <div
+                          class="w-12 h-8 rounded-full bg-gray-100 border-2 border-white flex items-center justify-center text-[10px] txt-gray font-bold">
+                          +12</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    class="p-6 bg-white border border-outline-variant/30 rounded-xl text-sm leading-relaxed txt-gray">
+                    System Overview: The EOMS is a microservices-based platform hosted on AWS EKS. It serves 150k
+                    daily active users and processes approximately $2.4M in GMV daily.
+                  </div>
+                </div>
+              </section>
+              <!-- 4. NFR Assessment & Scorecard -->
+              <section class="glass-panel rounded-2xl p-8 shadow-sm">
+                <div class="flex items-center gap-3 mb-6">
+                  <h3 class="text-2xl font-black tracking-tight">04. NFR Assessment</h3>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  <div class="space-y-3">
+                    <div class="flex justify-between items-end">
+                      <span class="text-xs font-bold">Availability</span>
+                      <span class="text-green-600 text-xs font-black">99.99%</span>
+                    </div>
+                    <div class="h-2 bg-surface rounded-full overflow-hidden">
+                      <div class="h-full bg-green-500 w-[95%]"></div>
+                    </div>
+                    <p class="text-[10px] txt-gray">Target: 99.99% (Met)</p>
+                  </div>
+                  <div class="space-y-3">
+                    <div class="flex justify-between items-end">
+                      <span class="text-xs font-bold">Latency (p99)</span>
+                      <span class="text-amber-500 text-xs font-black">450ms</span>
+                    </div>
+                    <div class="h-2 bg-surface rounded-full overflow-hidden">
+                      <div class="h-full bg-amber-500 w-[65%]"></div>
+                    </div>
+                    <p class="text-[10px] txt-gray">Target: 200ms (Missed)</p>
+                  </div>
+                  <div class="space-y-3">
+                    <div class="flex justify-between items-end">
+                      <span class="text-xs font-bold">Scalability</span>
+                      <span class="text-primary text-xs font-black">High</span>
+                    </div>
+                    <div class="h-2 bg-surface rounded-full overflow-hidden">
+                      <div class="h-full bg-primary w-[80%]"></div>
+                    </div>
+                    <p class="text-[10px] txt-gray">Auto-scaling Configured</p>
+                  </div>
+                  <div class="space-y-3">
+                    <div class="flex justify-between items-end">
+                      <span class="text-xs font-bold">Observability</span>
+                      <span class="text-primary text-xs font-black">B+</span>
+                    </div>
+                    <div class="h-2 bg-surface rounded-full overflow-hidden">
+                      <div class="h-full bg-primary w-[75%]"></div>
+                    </div>
+                    <p class="text-[10px] txt-gray">Logging/Tracing Active</p>
+                  </div>
+                </div>
+              </section>
+              <!-- 5. TOGAF Assessment -->
+              <section class="glass-panel rounded-2xl p-8 shadow-sm">
+                <div class="flex items-center gap-3 mb-6">
+                  <h3 class="text-2xl font-black tracking-tight">05. TOGAF Assessment</h3>
+                </div>
+                <div class="border border-outline-variant/30 rounded-xl overflow-hidden bg-white">
+                  <div class="flex border-b border-outline-variant/30 bg-surface/50">
+                    <button class="px-6 py-3 text-xs font-black text-primary border-b-2 border-primary">ADM
+                      ALIGNMENT</button>
+                    <button
+                      class="px-6 py-3 text-xs font-bold txt-gray hover:bg-surface transition-colors">VIEWPOINTS</button>
+                    <button
+                      class="px-6 py-3 text-xs font-bold txt-gray hover:bg-surface transition-colors">PRINCIPLES</button>
+                    <button
+                      class="px-6 py-3 text-xs font-bold txt-gray hover:bg-surface transition-colors">ABB/SBB</button>
+                  </div>
+                  <div class="p-6">
+                    <div class="flex items-start gap-4">
+
+                      <div>
+                        <h4 class="text-sm font-bold mb-2">Phase C: Information Systems Architecture</h4>
+                        <p class="text-xs txt-gray leading-relaxed">The current assessment confirms
+                          alignment with TOGAF 10.0 standards for Application Building Blocks (ABBs). Data
+                          architecture requires transition from 'Point-to-Point' to 'Hub-and-Spoke' patterns
+                          to minimize technical debt.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+              <!-- 6. Design Patterns & Anti-Patterns -->
+              <section class="glass-panel rounded-2xl p-8 shadow-sm">
+                <div class="flex items-center gap-3 mb-6">
+                  <h3 class="text-2xl font-black tracking-tight">06. Patterns &amp; Anti-Patterns</h3>
+                </div>
+                <div class="grid grid-cols-2 gap-8">
+                  <div class="space-y-4">
+                    <h4 class="text-xs font-black text-green-700 uppercase flex items-center gap-2">
+                      <span class="material-symbols-outlined text-sm" data-icon="verified">verified</span>
+                      Recommended Patterns
+                    </h4>
+                    <div class="space-y-3">
+                      <div class="p-4 bg-green-50 border border-green-100 rounded-xl">
+                        <p class="text-xs font-bold text-green-800">CQRS (Command Query Responsibility
+                          Segregation)</p>
+                        <p class="text-[10px] text-green-700 mt-1">Isolate high-frequency reads from writes for
+                          Order History.</p>
+                      </div>
+                      <div class="p-4 bg-green-50 border border-green-100 rounded-xl">
+                        <p class="text-xs font-bold text-green-800">Saga Orchestration</p>
+                        <p class="text-[10px] text-green-700 mt-1">Manage distributed transactions across
+                          Billing and Inventory.</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="space-y-4">
+                    <h4 class="text-xs font-black text-error uppercase flex items-center gap-2">
+                      <span class="material-symbols-outlined text-sm" data-icon="warning">warning</span> Critical
+                      Anti-Patterns
+                    </h4>
+                    <div class="space-y-3">
+                      <div class="p-4 bg-red-50 border border-red-100 rounded-xl">
+                        <p class="text-xs font-bold text-red-800">The Distributed Monolith</p>
+                        <p class="text-[10px] text-red-700 mt-1">Impact: Critical • Severe coupling prevents
+                          independent scaling.</p>
+                      </div>
+                      <div class="p-4 bg-red-50 border border-red-100 rounded-xl">
+                        <p class="text-xs font-bold text-red-800">Database as Integration Point</p>
+                        <p class="text-[10px] text-red-700 mt-1">Impact: High • Multiple services writing to the
+                          same SQL schema.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+              <!-- 7. DDD Review -->
+              <section class="glass-panel rounded-2xl p-8 shadow-sm">
+                <div class="flex items-center gap-3 mb-6">
+                  <h3 class="text-2xl font-black tracking-tight">07. DDD Review</h3>
+                </div>
+                <div class="bg-white border border-outline-variant/30 rounded-xl p-8">
+                  <div class="flex flex-col items-center">
+                    <p class="text-[10px] font-black txt-gray uppercase tracking-widest mb-10">Strategic
+                      Context Map</p>
+                    <div class="relative flex items-center gap-20">
+                      <div
+                        class="w-40 h-40 rounded-full border-2 border-primary bg-primary/5 flex flex-col items-center justify-center text-center p-4">
+                        <span class="text-xs font-black">Ordering BC</span>
+                        <span class="text-[9px] uppercase opacity-60 mt-1">Core Domain</span>
+                      </div>
+                      <div class="flex flex-col items-center">
+                        <div class="h-0.5 w-32 bg-primary relative">
+                          <span
+                            class="absolute -top-4 left-1/2 -translate-x-1/2 text-[9px] font-mono whitespace-nowrap">ACL
+                            / Anti-Corruption</span>
+                        </div>
+                        <span class="material-symbols-outlined text-primary mt-2" data-icon="sync_alt">sync_alt</span>
+                      </div>
+                      <div
+                        class="w-40 h-40 rounded-full border-2 border-dashed border-secondary bg-surface flex flex-col items-center justify-center text-center p-4">
+                        <span class="text-xs font-black">Inventory BC</span>
+                        <span class="text-[9px] uppercase opacity-60 mt-1">Supporting Domain</span>
+                      </div>
+                    </div>
+                    <div
+                      class="mt-12 grid grid-cols-2 gap-10 w-full pt-8 border-t border-dashed border-outline-variant/30">
+                      <div>
+                        <h5 class="text-[10px] font-black txt-gray uppercase mb-2">Ubiquitous Language
+                        </h5>
+                        <div class="flex flex-wrap gap-2">
+                          <span
+                            class="text-[10px] font-mono px-2 py-1 bg-surface-container rounded italic">"Dispatched"</span>
+                          <span
+                            class="text-[10px] font-mono px-2 py-1 bg-surface-container rounded italic">"Reservation"</span>
+                          <span
+                            class="text-[10px] font-mono px-2 py-1 bg-surface-container rounded italic">"Adjustment"</span>
+                        </div>
+                      </div>
+                      <div>
+                        <h5 class="text-[10px] font-black txt-gray uppercase mb-2">Decomposition Strategy
+                        </h5>
+                        <p class="text-xs txt-gray leading-relaxed">Splitting 'Global Order' aggregate
+                          into 'Pre-Purchase' and 'Post-Purchase' to handle varying consistency requirements.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+              <!-- 8. Security, Compliance & Governance -->
+              <section class="glass-panel rounded-2xl p-8 shadow-sm">
+                <div class="flex items-center gap-3 mb-6">
+                  <h3 class="text-2xl font-black tracking-tight">08. Security &amp; Compliance</h3>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div class="space-y-4">
+                    <div class="flex items-center gap-4 p-4 border border-outline-variant/30 rounded-xl">
+                      <span class="material-symbols-outlined text-primary" data-icon="lock">lock</span>
+                      <div>
+                        <p class="text-xs font-bold">Data Encryption</p>
+                        <p class="text-[10px] txt-gray">AES-256 for PII at rest via AWS KMS.</p>
+                      </div>
+                    </div>
+                    <div class="flex items-center gap-4 p-4 border border-outline-variant/30 rounded-xl">
+                      <span class="material-symbols-outlined text-primary" data-icon="fingerprint">fingerprint</span>
+                      <div>
+                        <p class="text-xs font-bold">Auth/Identity</p>
+                        <p class="text-[10px] txt-gray">OIDC Flow with MFA enforced for internal tools.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="p-6 bg-surface-container rounded-xl">
+                    <h5 class="text-xs font-black txt-gray uppercase mb-3">Regulatory Status</h5>
+                    <div class="space-y-3">
+                      <div class="flex justify-between items-center text-xs">
+                        <span class="font-medium">GDPR Compliance</span>
+                        <span class="text-green-600 font-bold">CERTIFIED</span>
+                      </div>
+                      <div class="flex justify-between items-center text-xs">
+                        <span class="font-medium">PCI-DSS Level 1</span>
+                        <span class="text-green-600 font-bold">COMPLIANT</span>
+                      </div>
+                      <div class="flex justify-between items-center text-xs">
+                        <span class="font-medium">SOC 2 Type II</span>
+                        <span class="text-amber-500 font-bold">IN-AUDIT</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+              <!-- 9. Infrastructure & Operations -->
+              <section class="glass-panel rounded-2xl p-8 shadow-sm">
+                <div class="flex items-center gap-3 mb-6">
+                  <h3 class="text-2xl font-black tracking-tight">09. Infrastructure &amp; Operations</h3>
+                </div>
+                <div class="grid grid-cols-3 gap-6">
+                  <div class="p-5 bg-white border border-outline-variant/30 rounded-xl text-center">
+                    <span class="material-symbols-outlined text-primary text-3xl mb-2" data-icon="hub">hub</span>
+                    <h5 class="text-xs font-bold">Compute</h5>
+                    <p class="text-[10px] txt-gray mt-1">EKS 1.28 Cluster<br />Managed Node Groups</p>
+                  </div>
+                  <div class="p-5 bg-white border border-outline-variant/30 rounded-xl text-center">
+                    <span class="material-symbols-outlined text-primary text-3xl mb-2" data-icon="backup">backup</span>
+                    <h5 class="text-xs font-bold">HA / DR</h5>
+                    <p class="text-[10px] txt-gray mt-1">Multi-AZ Deployment<br />RTO: 4h / RPO: 15m</p>
+                  </div>
+                  <div class="p-5 bg-white border border-outline-variant/30 rounded-xl text-center">
+                    <span class="material-symbols-outlined text-primary text-3xl mb-2"
+                      data-icon="visibility">visibility</span>
+                    <h5 class="text-xs font-bold">Observability</h5>
+                    <p class="text-[10px] txt-gray mt-1">Datadog + CloudWatch<br />Structured Logging</p>
+                  </div>
+                </div>
+              </section>
+              <!-- 10. Data & Integration -->
+              <section class="glass-panel rounded-2xl p-8 shadow-sm">
+                <div class="flex items-center gap-3 mb-6">
+                  <h3 class="text-2xl font-black tracking-tight">10. Data &amp; Integration</h3>
+                </div>
+                <div class="space-y-6">
+                  <div class="p-6 border border-outline-variant/30 rounded-xl bg-white">
+                    <h5 class="text-xs font-black txt-gray uppercase mb-4">Integration Landscape</h5>
+                    <div class="flex items-center justify-around">
+                      <div class="flex flex-col items-center gap-2">
+                        <span class="text-[10px] font-bold">REST/gRPC</span>
+                        <div
+                          class="w-16 h-8 bg-surface border border-outline-variant rounded flex items-center justify-center">
+                          <span class="material-symbols-outlined text-sm" data-icon="api">api</span></div>
+                        <span class="text-[9px] txt-gray">Synchronous</span>
+                      </div>
+                      <span class="material-symbols-outlined text-outline-variant"
+                        data-icon="chevron_right">chevron_right</span>
+                      <div class="flex flex-col items-center gap-2">
+                        <span class="text-[10px] font-bold">Apache Kafka</span>
+                        <div
+                          class="w-16 h-12 bg-primary/10 border-2 border-primary rounded-full flex items-center justify-center text-primary font-black text-[10px]">
+                          MESH</div>
+                        <span class="text-[9px] txt-gray">Eventing</span>
+                      </div>
+                      <span class="material-symbols-outlined text-outline-variant"
+                        data-icon="chevron_right">chevron_right</span>
+                      <div class="flex flex-col items-center gap-2">
+                        <span class="text-[10px] font-bold">Snowflake</span>
+                        <div
+                          class="w-16 h-8 bg-surface border border-outline-variant rounded flex items-center justify-center">
+                          <span class="material-symbols-outlined text-sm" data-icon="analytics">analytics</span></div>
+                        <span class="text-[9px] txt-gray">Analytics</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="grid grid-cols-2 gap-4 text-xs">
+                    <div class="p-4 bg-surface rounded-xl"><span class="font-bold">Ownership:</span> Decentralized
+                      domain-owned schemas.</div>
+                    <div class="p-4 bg-surface rounded-xl"><span class="font-bold">Governance:</span> JSON Schema
+                      Registry enforced.</div>
+                  </div>
+                </div>
+              </section>
+              <!-- 11. Detailed Gap Analysis (Kanban) -->
+              <section class="glass-panel rounded-2xl p-8 shadow-sm">
+                <div class="flex items-center gap-3 mb-6">
+                  <h3 class="text-2xl font-black tracking-tight">11. Detailed Gap Analysis</h3>
+                </div>
+                <div class="grid grid-cols-3 gap-6">
+                  <div class="space-y-4">
+                    <div class="flex items-center gap-2 px-1">
+                      <span class="w-3 h-3 rounded bg-red-400"></span>
+                      <h5 class="text-[10px] font-black txt-gray uppercase">Current Gaps (Critical)</h5>
+                    </div>
+                    <div class="p-4 bg-white border-l-4 border-red-500 rounded-lg shadow-sm space-y-2">
+                      <p class="text-xs font-bold">GAP-01: Manual Failover</p>
+                      <p class="text-[10px] txt-gray">PostgreSQL primary in US-East lacks automated
+                        switchover logic.</p>
+                      <span class="px-2 py-0.5 bg-red-100 text-red-600 text-[9px] font-bold rounded">P0
+                        PRIORITY</span>
+                    </div>
+                  </div>
+                  <div class="space-y-4">
+                    <div class="flex items-center gap-2 px-1">
+                      <span class="w-3 h-3 rounded bg-amber-400"></span>
+                      <h5 class="text-[10px] font-black txt-gray uppercase">In Progress / Planned</h5>
+                    </div>
+                    <div class="p-4 bg-white border-l-4 border-amber-500 rounded-lg shadow-sm space-y-2">
+                      <p class="text-xs font-bold">GAP-04: Circuit Breakers</p>
+                      <p class="text-[10px] txt-gray">Implementation of Resilience4j on the API Gateway
+                        layer.</p>
+                      <span class="px-2 py-0.5 bg-amber-100 text-amber-600 text-[9px] font-bold rounded">P1
+                        PRIORITY</span>
+                    </div>
+                  </div>
+                  <div class="space-y-4">
+                    <div class="flex items-center gap-2 px-1">
+                      <span class="w-3 h-3 rounded bg-green-400"></span>
+                      <h5 class="text-[10px] font-black txt-gray uppercase">Resolved</h5>
+                    </div>
+                    <div class="p-4 bg-white border-l-4 border-green-500 rounded-lg shadow-sm space-y-2 opacity-60">
+                      <p class="text-xs font-bold line-through">GAP-07: Legacy Auth</p>
+                      <p class="text-[10px] txt-gray">Migration from LDAP to OIDC (Auth0) completed.</p>
+                      <span class="px-2 py-0.5 bg-green-100 text-green-600 text-[9px] font-bold rounded">DONE</span>
+                    </div>
+                  </div>
+                </div>
+              </section>
+              <!-- 12. TO-BE Architecture -->
+              <section class="glass-panel rounded-2xl p-8 shadow-sm">
+                <div class="flex items-center justify-between mb-6">
+                  <div class="flex items-center gap-3">
+                    <h3 class="text-2xl font-black tracking-tight">12. TO-BE Architecture (2025)</h3>
+                  </div>
+                  <div class="flex gap-2">
+                    <span
+                      class="px-3 py-1 bg-primary/10 text-primary text-[10px] font-black rounded-full uppercase tracking-widest">Event-Driven
+                      Mesh</span>
+                  </div>
+                </div>
+                <div
+                  class="w-full aspect-video bg-white rounded-xl border border-outline-variant overflow-hidden p-10 flex flex-col items-center">
+                  <div class="w-full flex justify-center mb-16">
+                    <div class="px-8 py-3 border border-secondary rounded-lg text-sm font-bold bg-surface shadow-sm">
+                      Global CDN (CloudFront)</div>
+                  </div>
+                  <div class="flex gap-24 items-start relative">
+                    <div class="absolute inset-0 flex items-center justify-center -z-10">
+                      <div
+                        class="w-64 h-64 border-4 border-dashed border-primary/10 rounded-full animate-[spin_20s_linear_infinite]">
+                      </div>
+                    </div>
+                    <div class="flex flex-col gap-8">
+                      <div
+                        class="px-6 py-3 border-2 border-primary rounded-xl text-xs font-black bg-primary/5 shadow-md">
+                        ORDER SERVICE</div>
+                      <div
+                        class="px-6 py-3 border-2 border-primary rounded-xl text-xs font-black bg-primary/5 shadow-md">
+                        USER SERVICE</div>
+                    </div>
+                    <div class="flex flex-col items-center justify-center pt-6">
+                      <div
+                        class="w-24 h-24 rounded-full border-4 border-primary flex flex-col items-center justify-center bg-white shadow-2xl relative overflow-hidden">
+                        <div class="absolute inset-0 bg-primary/5 animate-pulse"></div>
+                        <span class="text-xs font-black text-primary relative z-10">KAFKA</span>
+                        <span class="text-[8px] font-bold txt-gray relative z-10">MSK</span>
+                      </div>
+                      <p class="text-[10px] font-black mt-4 uppercase text-primary tracking-widest">Event Spine
+                      </p>
+                    </div>
+                    <div class="flex flex-col gap-8">
+                      <div
+                        class="px-6 py-3 border-2 border-primary rounded-xl text-xs font-black bg-primary/5 shadow-md">
+                        BILLING SERVICE</div>
+                      <div
+                        class="px-6 py-3 border-2 border-primary rounded-xl text-xs font-black bg-primary/5 shadow-md">
+                        AUDIT SERVICE</div>
+                    </div>
+                  </div>
+                  <div
+                    class="mt-auto grid grid-cols-3 gap-10 w-full pt-10 border-t border-dashed border-outline-variant/30 text-center">
+                    <div>
+                      <p class="text-[10px] font-black txt-gray uppercase">Primary Tech</p>
+                      <p class="text-xs font-bold">Go / Quarkus</p>
+                    </div>
+                    <div>
+                      <p class="text-[10px] font-black txt-gray uppercase">Database</p>
+                      <p class="text-xs font-bold">CockroachDB (Multi-Region)</p>
+                    </div>
+                    <div>
+                      <p class="text-[10px] font-black txt-gray uppercase">Infra</p>
+                      <p class="text-xs font-bold">AWS EKS Anywhere</p>
+                    </div>
+                  </div>
+                </div>
+              </section>
+              <!-- 13. Transformation Roadmap -->
+              <section class="glass-panel rounded-2xl p-8 shadow-sm">
+                <div class="flex items-center gap-3 mb-8">
+                  <h3 class="text-2xl font-black tracking-tight">13. Transformation Roadmap</h3>
+                </div>
+                <div
+                  class="relative space-y-8 before:absolute before:left-4 before:top-2 before:bottom-2 before:w-0.5 before:bg-outline-variant">
+                  <div class="relative pl-12">
+                    <div
+                      class="absolute left-0 top-1.5 w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-[10px] font-black">
+                      Q3</div>
+                    <h5 class="text-sm font-black">Immediate (0-3 Months)</h5>
+                    <p class="text-xs txt-gray mt-1">Foundation: Kafka cluster setup, Security Hardening,
+                      Circuit Breaker implementation.</p>
+                  </div>
+                  <div class="relative pl-12">
+                    <div
+                      class="absolute left-0 top-1.5 w-8 h-8 rounded-full bg-surface border-2 border-primary flex items-center justify-center text-primary text-[10px] font-black">
+                      Q4</div>
+                    <h5 class="text-sm font-black">Mid-Term (3-9 Months)</h5>
+                    <p class="text-xs txt-gray mt-1">Migration: Refactor Order-Service to async events. Begin
+                      CockroachDB pilot for APAC.</p>
+                  </div>
+                  <div class="relative pl-12">
+                    <div
+                      class="absolute left-0 top-1.5 w-8 h-8 rounded-full bg-surface border-2 border-outline-variant flex items-center justify-center txt-gray text-[10px] font-black">
+                      25</div>
+                    <h5 class="text-sm font-black">Long-Term (9-18 Months)</h5>
+                    <p class="text-xs txt-gray mt-1">Optimization: Full decommissioning of legacy PG clusters.
+                      Global multi-region active-active.</p>
+                  </div>
+                </div>
+              </section>
+              <!-- 14. ADR Repository -->
+              <section class="glass-panel rounded-2xl p-8 shadow-sm">
+                <div class="flex items-center justify-between mb-6">
+                  <div class="flex items-center gap-3">
+                    <h3 class="text-2xl font-black tracking-tight">14. ADR Repository</h3>
+                  </div>
+                  <button class="text-primary text-[10px] font-black hover:underline uppercase">View All 42
+                    Records</button>
+                </div>
+                <div class="space-y-3">
+                  <div
+                    class="flex items-center justify-between p-4 bg-white border border-outline-variant/30 rounded-xl hover:border-primary transition-colors cursor-pointer group">
+                    <div class="flex items-center gap-4">
+                      <span class="text-[10px] font-mono txt-gray">ADR-2024-012</span>
+                      <span class="text-xs font-bold group-hover:text-primary">Transition to Event-Driven
+                        Orchestration</span>
+                    </div>
+                    <span class="px-2 py-0.5 bg-green-100 text-green-700 text-[10px] font-bold rounded">ACCEPTED</span>
+                  </div>
+                  <div
+                    class="flex items-center justify-between p-4 bg-white border border-outline-variant/30 rounded-xl hover:border-primary transition-colors cursor-pointer group">
+                    <div class="flex items-center gap-4">
+                      <span class="text-[10px] font-mono txt-gray">ADR-2024-009</span>
+                      <span class="text-xs font-bold group-hover:text-primary">Standardization on Go for
+                        Performance Tiers</span>
+                    </div>
+                    <span class="px-2 py-0.5 bg-green-100 text-green-700 text-[10px] font-bold rounded">ACCEPTED</span>
+                  </div>
+                  <div
+                    class="flex items-center justify-between p-4 bg-white border border-outline-variant/30 rounded-xl hover:border-primary transition-colors cursor-pointer group opacity-60">
+                    <div class="flex items-center gap-4">
+                      <span class="text-[10px] font-mono txt-gray">ADR-2023-045</span>
+                      <span class="text-xs font-bold group-hover:text-primary">GraphQL for Core Internal Domain
+                        Services</span>
+                    </div>
+                    <span
+                      class="px-2 py-0.5 bg-red-100 text-red-700 text-[10px] font-bold rounded uppercase">Superseded</span>
+                  </div>
+                </div>
+              </section>
+              <!-- 15. Final Scorecard -->
+              <section class="glass-panel rounded-2xl p-10 shadow-sm border-2 border-primary/20">
+                <div class="flex items-center gap-3 mb-10">
+                  <h3 class="text-2xl font-black tracking-tight">15. Final Scorecard</h3>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-16">
+                  <!-- Radar Mockup -->
+                  <div
+                    class="relative aspect-square flex items-center justify-center border border-dashed border-outline-variant/50 rounded-full">
+                    <div class="absolute inset-0 flex items-center justify-center opacity-10">
+                      <div class="w-[80%] h-[80%] border border-primary rounded-full"></div>
+                      <div class="w-[60%] h-[60%] border border-primary rounded-full absolute"></div>
+                      <div class="w-[40%] h-[40%] border border-primary rounded-full absolute"></div>
+                    </div>
+                    <!-- Legend Labels -->
+                    <span class="absolute top-0 text-[9px] font-black txt-gray">RESILIENCE</span>
+                    <span class="absolute right-0 text-[9px] font-black txt-gray">SECURITY</span>
+                    <span class="absolute bottom-0 text-[9px] font-black txt-gray">AGILITY</span>
+                    <span class="absolute left-0 text-[9px] font-black txt-gray">SCALABILITY</span>
+                    <!-- Polygon Mock -->
+                    <div class="w-32 h-32 bg-primary/20 border-2 border-primary clip-path-polygon"></div>
+                  </div>
+                  <!-- Weighted Scores -->
+                  <div class="space-y-6">
+                    <div>
+                      <div class="flex justify-between mb-2">
+                        <span class="text-sm font-bold">Technical Alignment</span>
+                        <span class="text-sm font-black text-primary">8.4 / 10</span>
+                      </div>
+                      <div class="w-full h-3 bg-surface rounded-full">
+                        <div class="h-full bg-primary w-[84%] rounded-full"></div>
+                      </div>
+                    </div>
+                    <div>
+                      <div class="flex justify-between mb-2">
+                        <span class="text-sm font-bold">Operational Readiness</span>
+                        <span class="text-sm font-black text-primary">7.2 / 10</span>
+                      </div>
+                      <div class="w-full h-3 bg-surface rounded-full">
+                        <div class="h-full bg-primary w-[72%] rounded-full"></div>
+                      </div>
+                    </div>
+                    <div class="pt-6 border-t border-dashed border-outline-variant/30">
+                      <p class="text-[10px] font-black txt-gray uppercase mb-2">Overall Maturity Rating</p>
+                      <div class="flex items-center gap-4">
+                        <span class="text-5xl font-black text-primary">L4</span>
+                        <div class="text-xs leading-tight font-medium txt-gray">
+                          High confidence for strategic scaling.<br />
+                          Governance adherence is exceptional.
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </div>
           </div>
+
         </div>
       </div>
     </div>
   </main>
 </div>
+      
