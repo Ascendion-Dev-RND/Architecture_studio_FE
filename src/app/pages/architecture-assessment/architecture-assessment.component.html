@@ -53,67 +53,87 @@
       </p>
 
       <!-- Card -->
-      <div class="bg-card rounded-2xl p-8 card-shadow max-w-3xl mx-auto">
-
-        <!-- Input -->
-        <div class="mb-4">
-          <input
-            type="text"
-            [(ngModel)]="input"
-            (keyup.enter)="handleSend()"
-            placeholder="Describe your architecture for assessment..."
-            class="w-full bg-transparent text-foreground placeholder:text-muted-foreground text-lg outline-none"
-          />
-        </div>
-
-        <!-- ✅ FILE CHIPS -->
-        <div *ngIf="uploadedFiles.length > 0"
-             class="mb-4 flex flex-wrap gap-2">
-
+       <div
+        class="glass-card glass-card-shadow rounded-xl p-6 max-w-4xl mx-auto"
+      >
+        <!-- INPUT AREA -->
+        <div
+          class="mb-6 rounded-md flex flex-col gap-2 min-h-[90px] max-h-[160px] transition"
+        >
+          <!-- ATTACHMENTS -->
           <div
-            *ngFor="let file of uploadedFiles; let i = index"
-            class="flex items-center gap-2 px-3 py-1 bg-primary/10 rounded-full text-sm"
+            *ngIf="uploadedFiles.length > 0"
+            class="flex gap-2 overflow-visible"
           >
-            <lucide-icon name="FileText" class="w-3 h-3"></lucide-icon>
-
-            <span class="max-w-[120px] truncate">
-              {{ file.name }}
-            </span>
-
-            <button
-              type="button"
-              (click)="removeFile(i)"
-              class="ml-1 text-gray-500 hover:text-red-500"
+            <div
+              *ngFor="let file of uploadedFiles; let i = index"
+              class="relative w-16 h-16 rounded-md border bg-[#F0F1F2] flex items-center justify-center flex-shrink-0"
+              [title]="file.name"
             >
-              <lucide-icon name="X" class="w-3 h-3"></lucide-icon>
-            </button>
+              <!-- IMAGE PREVIEW -->
+              <ng-container *ngIf="file.preview; else fileIcon">
+                <img
+                  [src]="file.preview"
+                  class="w-full h-full object-cover rounded-md"
+                />
+              </ng-container>
+
+              <!-- FILE ICON -->
+              <ng-template #fileIcon>
+                <lucide-icon
+                  name="FileText"
+                  class="w-4 h-4 text-gray-500"
+                ></lucide-icon>
+              </ng-template>
+
+              <!-- REMOVE -->
+              <button
+                type="button"
+                (click)="removeFile(i)"
+                class="absolute top-0 right-0 translate-x-1/4 -translate-y-1/4 w-4 h-4 bg-black/70 text-white rounded-full flex items-center justify-center text-[10px] hover:bg-gray-500"
+              >
+                ✕
+              </button>
+            </div>
           </div>
+
+          <!-- TEXTAREA -->
+          <textarea
+            [(ngModel)]="input"
+            (keydown.enter)="handleSend()"
+            placeholder="Describe your system requirements..."
+            rows="1"
+            class="w-full resize-none text-sm bg-transparent outline-none leading-tight overflow-y-auto"
+            style="
+              color: #3b3f46;
+              font-family: 'Inter', sans-serif;
+            "
+          ></textarea>
         </div>
 
-        <!-- Buttons Row -->
+        <!-- ACTION BAR -->
         <div class="flex items-center justify-between">
 
-          <!-- LEFT: Attachment -->
-          <div class="flex items-center gap-3">
+          <!-- LEFT -->
+          <div class="flex items-center gap-3 text-[0.75rem]">
 
+            <!-- ATTACHMENT -->
             <div class="relative">
-
-              <!-- 📎 Button -->
-              <button 
+              <button
                 type="button"
+                title="Add files"
                 (click)="toggleAttachmentPanel()"
                 [class.text-primary]="uploadedFiles.length > 0"
-                class="p-2 text-muted-foreground hover:text-foreground transition-colors relative"
+                class="text-muted-foreground hover:text-foreground transition-colors relative"
               >
-                <lucide-icon name="Paperclip" class="w-5 h-5"></lucide-icon>
-
-                <span *ngIf="uploadedFiles.length > 0"
-                      class="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full text-[10px] flex items-center justify-center text-white">
-                  {{ uploadedFiles.length }}
-                </span>
+                <img
+                  src="/assets/icons/plus.svg"
+                  alt="attach Icon"
+                  class="w-6 h-6 cursor-pointer ml-auto"
+                />
               </button>
 
-              <!-- ✅ Dropdown -->
+              <!-- DROPDOWN -->
               <div
                 *ngIf="showAttachmentPanel"
                 class="absolute top-full mt-2 w-72 bg-card rounded-lg card-shadow border border-border/50 py-2 z-50"
@@ -122,37 +142,54 @@
                   (click)="openFilePicker()"
                   class="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100"
                 >
-                  <lucide-icon name="FileUp" class="w-4 h-4"></lucide-icon>
+                  <lucide-icon
+                    name="FileUp"
+                    class="w-4 h-4"
+                  ></lucide-icon>
+
                   Upload files
                 </button>
               </div>
-
             </div>
 
           </div>
 
-          <!-- RIGHT: Actions -->
-          <div class="flex items-center gap-3">
+          <!-- RIGHT -->
+          <div class="flex items-center gap-4">
 
+            <!-- ENHANCE -->
             <button
+              type="button"
               (click)="handleEnhance()"
-              class="p-2 text-muted-foreground hover:text-amber-500 transition-colors"
+              title="Enhance prompt"
+              class="text-muted-foreground hover:text-amber-500 transition-colors cursor-pointer"
             >
-              <lucide-icon name="Wand" class="w-5 h-5"></lucide-icon>
+              <img
+                src="/assets/icons/wand.svg"
+                alt="wand Icon"
+                class="w-6 h-6 cursor-pointer ml-auto"
+              />
             </button>
 
+            <!-- SEND -->
             <button
+              type="button"
+              title="Generate blueprint"
               (click)="handleSend()"
-              class="p-2 text-muted-foreground hover:text-primary transition-colors"
+              class="text-muted-foreground hover:text-primary transition-colors cursor-pointer"
             >
-              <lucide-icon name="Send" class="w-5 h-5"></lucide-icon>
+              <img
+                src="/assets/icons/send-icon.svg"
+                alt="Send Icon"
+                class="w-6 h-6 cursor-pointer ml-auto"
+              />
             </button>
 
           </div>
         </div>
 
-      </div>
-      <div class="mt-16 max-w-5xl mx-auto">
+    </div>
+      <!-- <div class="mt-16 max-w-5xl mx-auto">
         <div style="display: flex; padding: 24px; flex-direction: column; justify-content: center; align-items: center; gap: 24px; align-self: stretch; border-radius: 12px; background: rgba(255, 255, 255, 0.60); box-shadow: 0 2px 4px 0 #D1D3D8; backdrop-filter: blur(10px);">
           <div class="flex items-center gap-1 p-1 rounded-full w-fit" style="background: rgba(226, 232, 240, 0.6);">
             <button type="button" (click)="activeTab = 'recent'" [class.bg-white]="activeTab === 'recent'" [class.shadow-sm]="activeTab === 'recent'" class="px-6 py-2 rounded-full text-sm font-medium transition-all" [style.color]="activeTab === 'recent' ? '#1D4ED8' : '#616874'" style="font-family: 'Inter', sans-serif;">
@@ -187,7 +224,7 @@
             </button>
           </div>
         </div>
-      </div>
+      </div> -->
 
       <!-- Information Section -->
       <div class="mt-20 text-left max-w-5xl mx-auto">
