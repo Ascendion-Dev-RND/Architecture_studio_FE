@@ -115,12 +115,25 @@ export class IconService {
     }
 
     return this.getIcon(iconId).pipe(
-      switchMap(icon => from(this.resolveSafeIconUrl(iconId, icon?.imageUrl))),
+      switchMap(icon => from(this.resolveSafeIconUrl(iconId, this.absolutizeImageUrl(icon?.imageUrl)))),
       map(url => {
         this.resolvedIconUrlCache.set(normalizedId, url);
         return url;
       })
     );
+  }
+
+  /**
+   * Catalog rows for icons bundled inside icon-service carry a relative
+   * imageUrl ('/api/icons/<id>/image'). Resolve it against the same base the
+   * rest of the icon API uses, otherwise the browser would request it from
+   * the app origin and render a broken image.
+   */
+  private absolutizeImageUrl(url?: string): string | undefined {
+    if (!url || !url.startsWith('/api/icons/')) {
+      return url;
+    }
+    return this.apiUrl + url.substring('/api/icons'.length);
   }
 
   /**
